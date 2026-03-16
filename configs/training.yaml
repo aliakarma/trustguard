@@ -1,0 +1,22 @@
+# ── trustguard/configs/training.yaml ─────────────────────────────────────────
+# Experiment-level training settings.
+
+training:
+  marl_iterations: 500         # total MARL training iterations
+  log_interval:    10          # log every N iterations
+  save_interval:   50          # save checkpoint every N iterations
+  eval_interval:   100         # run evaluation every N iterations
+  prefer_gpu:      true
+
+rollout:
+  rollout_steps:   2048
+  num_envs:        1           # increase for parallel collection
+  num_benign:      50
+  num_malicious:   10
+
+environment:
+  max_steps:       1000
+  risk_reduction_weight: 1.0
+  false_revoc_penalty:   5.0
+  enforce_cost:          0.01
+  seed:                  42

@@ -1,0 +1,55 @@
+# ── Python ────────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+.env
+.venv
+env/
+venv/
+
+# ── Data & outputs ────────────────────────────────────────────────────────────
+data/
+outputs/
+runs/
+wandb/
+*.parquet
+*.h5
+*.hdf5
+*.npy
+*.npz
+*.pkl
+*.pt
+*.pth
+
+# ── Notebooks ─────────────────────────────────────────────────────────────────
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# ── IDE ───────────────────────────────────────────────────────────────────────
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# ── Logs ─────────────────────────────────────────────────────────────────────
+*.log
+logs/
+
+# ── Coverage ──────────────────────────────────────────────────────────────────
+.coverage
+htmlcov/
+.pytest_cache/
+
+# ── Type checking ─────────────────────────────────────────────────────────────
+.mypy_cache/
+
+# ── APKs (large binary files — use Git LFS if needed) ────────────────────────
+*.apk
+apks/

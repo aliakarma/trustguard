@@ -1,0 +1,31 @@
+# ── trustguard/configs/dataset.yaml ──────────────────────────────────────────
+# PermissionBench dataset configuration.
+
+dataset:
+  name:       PermissionBench
+  version:    "1.0"
+  data_root:  data/permissionbench
+  split_ratios: [0.70, 0.10, 0.20]
+  seed:       42
+
+  # Source datasets
+  sources:
+    androzoo:
+      n_samples:  61840
+      categories: 33
+    drebin:
+      n_samples:  8560
+    maldroid2020:
+      n_samples:  5952
+
+  # Annotation thresholds (§5.5 of the paper)
+  annotation:
+    tau_low:  0.05
+    tau_high: 0.70
+    iaa_kappa_target: 0.80   # minimum inter-annotator agreement
+
+  # DataLoader
+  batch_size:      256
+  num_workers:     4
+  balance_classes: true      # WeightedRandomSampler for benign/malicious balance
+  augment_train:   true

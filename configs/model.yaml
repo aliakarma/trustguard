@@ -1,0 +1,61 @@
+# ── trustguard/configs/model.yaml ────────────────────────────────────────────
+# Model architecture configuration for TrustGuard.
+# All dimensions must be consistent across modules.
+
+# ── App Semantic Encoder (Layer 1) ────────────────────────────────────────────
+semantic_encoder:
+  output_dim: 256              # ϕ(fᵢ) dimension — propagates to all downstream modules
+  freeze_text: false           # freeze BERT / CodeBERT weights during MARL training
+  graph_in_channels: 128       # input node-feature dimension for GATv2
+  dropout: 0.1
+  bert_model: "bert-base-uncased"
+  codebert_model: "microsoft/codebert-base"
+
+# ── Permission Prediction Model (Layer 2) ────────────────────────────────────
+permission_predictor:
+  embedding_dim: 256           # must match semantic_encoder.output_dim
+  hidden_dims: [512, 256]
+  dropout: 0.1
+  label_smoothing: 0.1
+
+# ── Runtime Risk Estimator (Layer 3) ─────────────────────────────────────────
+risk_estimator:
+  ema_alpha: 0.3               # exponential moving average coefficient
+  history_len: 1000            # per-app risk history buffer length
+
+# ── Belief Encoder ────────────────────────────────────────────────────────────
+belief_encoder:
+  obs_dim_monitor: 44          # |𝒫| + 2
+  obs_dim_risk: 87             # 2*|𝒫| + 1 + N_apps (approx for small env)
+  obs_dim_enforce: 259         # belief_dim + N_apps + 2
+  embed_dim: 128
+  gru_hidden_dim: 512
+  belief_dim: 256
+  num_gru_layers: 1
+  dropout: 0.0
+
+# ── Agent networks ────────────────────────────────────────────────────────────
+monitoring_agent:
+  hidden_dims: [256, 256]
+  dropout: 0.0
+
+risk_analysis_agent:
+  hidden_dims: [256, 256]
+  dropout: 0.0
+  ema_alpha: 0.3
+
+enforcement_agent:
+  hidden_dims: [256, 256]
+  dropout: 0.0
+  risk_threshold: 0.5
+  history_window: 20
+  belief_dim: 256
+
+# ── Centralised critic ────────────────────────────────────────────────────────
+centralized_critic:
+  # state_dim = N_apps * |𝒫| + N_apps + N_apps * embedding_dim
+  # with N_apps=20 (small env), |𝒫|=42, embedding_dim=256:
+  # 20*42 + 20 + 20*256 = 840 + 20 + 5120 = 5980
+  state_dim: 5980
+  hidden_dims: [512, 256]
+  dropout: 0.0

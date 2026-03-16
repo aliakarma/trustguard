@@ -1,0 +1,38 @@
+# ── trustguard/configs/marl.yaml ─────────────────────────────────────────────
+# MAPPO training hyperparameters for TrustGuard.
+
+# ── Core MAPPO ────────────────────────────────────────────────────────────────
+mappo:
+  lr_actor: 3.0e-4
+  lr_critic: 1.0e-3
+  lr_lagrange: 1.0e-3
+  gamma: 0.99
+  gae_lambda: 0.95
+  eps_clip: 0.2
+  value_loss_coef: 0.5
+  entropy_coef: 0.01
+  max_grad_norm: 10.0
+  ppo_epochs: 10
+  mini_batch_size: 256
+
+# ── Safety constraint ─────────────────────────────────────────────────────────
+lagrangian:
+  eps_safe: 0.025            # maximum tolerated false-revocation rate ε_safe
+  lagrange_init: 0.0         # initial multiplier μ₀
+  lagrange_max: 10.0         # μ ceiling to prevent instability
+
+# ── Rollout / environment ─────────────────────────────────────────────────────
+rollout:
+  rollout_steps: 2048        # H — steps collected before each PPO update
+  num_envs: 8                # parallel simulation environments
+  max_episode_steps: 1000    # maximum steps per episode (72h simulation ÷ timestep)
+
+# ── Supervised pre-training (permission predictor) ───────────────────────────
+supervised:
+  lr: 1.0e-4
+  batch_size: 256
+  epochs: 30
+  weight_decay: 1.0e-4
+  warmup_steps: 500
+  scheduler: cosine           # cosine | step | none
+  patience: 5                 # early stopping patience (epochs without improvement)

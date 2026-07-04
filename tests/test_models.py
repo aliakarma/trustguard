@@ -71,6 +71,7 @@ class TestPermissionPredictionModel:
         assert (probs >= 0.0).all() and (probs <= 1.0).all()
 
     def test_risk_scores_complement(self, perm_pred):
+        perm_pred.eval()
         phi   = torch.randn(4, 32)
         probs = perm_pred.predict_proba(phi)
         risk  = perm_pred.risk_scores(phi)

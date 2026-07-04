@@ -53,3 +53,4 @@ htmlcov/
 # ── APKs (large binary files — use Git LFS if needed) ────────────────────────
 *.apk
 apks/
+/Paper

@@ -1,0 +1,21 @@
+{
+  "description": "Out-of-generator and low-prevalence stress tests (paper section 'Out-of-Generator and Low-Prevalence Stress Tests' + Appendix 'Held-Out Generator (AASE-B) and Prevalence Protocols'). The trained TrustGuard policy is evaluated FROZEN under distribution shift; the recalibration row re-runs only the Lagrangian dual update for 72 simulated hours at the target prevalence with actor policies frozen. mean over seeds {7, 42, 123, 777, 2024}.",
+  "protocol": {
+    "aase_b": "Held-out generator: inter-session-gap bootstrap (resampling gap distributions of a held-out half of sandbox sessions) + self-exciting Hawkes injection lambda(t) = mu0 + sum_{t_j<t} alpha*exp(-beta*(t-t_j)), both fit to the held-out session half.",
+    "low_prevalence": "Original AASE generator with malicious fraction reduced to 2% (14/700).",
+    "recalibration": "Lagrangian dual update only, 72 simulated hours at target prevalence, actor policies frozen.",
+    "eps_safe": 0.025
+  },
+  "results": {
+    "In-generator reference (AASE, 28.6% prevalence)": {"AIPR_pct": 63.4, "EPR_pct": 71.8, "FRR_pct": 2.1, "within_budget": true},
+    "Held-out generator (AASE-B)":                     {"AIPR_pct": 55.7, "EPR_pct": 62.9, "FRR_pct": 2.8, "within_budget": false},
+    "2% prevalence, no recalibration":                 {"AIPR_pct": 61.6, "EPR_pct": 70.1, "FRR_pct": 4.7, "within_budget": false},
+    "2% prevalence + 72h dual recalibration":          {"AIPR_pct": 56.2, "EPR_pct": 64.0, "FRR_pct": 2.4, "within_budget": true}
+  },
+  "key_findings": [
+    "Under the held-out generator, TrustGuard loses roughly 7.7 AIPR points and drifts marginally past the FRR budget (2.8% vs 2.5%).",
+    "At 2% prevalence, per-event coverage remains stable but FRR rises past the budget.",
+    "Re-running the dual update at the target prevalence restores feasibility at a coverage cost.",
+    "The safety budget is a distribution-conditional property requiring recalibration under shift, not an invariant of the trained policy."
+  ]
+}

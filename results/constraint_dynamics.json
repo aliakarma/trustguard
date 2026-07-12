@@ -1,0 +1,16 @@
+{
+  "description": "Constraint dynamics during MAPPO-Lagrangian training (rolling-window FRR and dual variable mu; paper tab:curves) and per-category FRR from the Fairness appendix. Final paper values.",
+  "training_dynamics": {
+    "iterations": [500, 1500, 2500, 3500, 5000],
+    "rolling_FRR_pct": [9.6, 4.3, 2.4, 2.2, 2.1],
+    "mu": [0.21, 0.62, 0.83, 0.85, 0.85],
+    "note": "FRR converges below eps_safe = 0.025 near iteration 2,100."
+  },
+  "per_category_frr": {
+    "description": "Group-level category-wise FRR range cited in the Ethics statement. Aggregate FRR = 2.1%.",
+    "min": {"category": "Communication",   "FRR_pct": 1.4},
+    "max": {"category": "Personalization", "FRR_pct": 3.8},
+    "high_variance_categories": {"Personalization": 3.8, "Tools": 3.5},
+    "note": "Personalization and Tools exhibit the highest variance due to smaller training representation; per-category FRR exceeds the aggregate budget on underrepresented categories, so group-level rather than only aggregate constraint satisfaction is the deployment-relevant object."
+  }
+}

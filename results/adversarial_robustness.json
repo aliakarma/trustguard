@@ -1,0 +1,23 @@
+{
+  "description": "Task 3: Adversarial robustness (AUROC) under manifest mimicry (MM), Runtime Trace Mimicry Attack (RTMA), and their composition (paper tab:adversarial). mean over seeds {7, 42, 123, 777, 2024}; std <= 0.006 for all cells. For RTMA, every baseline is re-scored on re-instrumented, re-featurized APKs (the timing shim is a bytecode modification).",
+  "protocol": {
+    "manifest_mimicry": "Greedy addition of low-risk permissions from the target category profile, retaining at least one functional high-risk permission; declared sets only.",
+    "rtma": "Timing shim delaying permission API invocations to match the benign inter-arrival distribution of the same category (learned from 50 benign apps/category), suppressing no calls. Traces pass a per-application Pearson chi-square goodness-of-fit test vs the pooled category timing profile (12 log-spaced inter-arrival bins, alpha = 0.05; failure to reject).",
+    "composition": "MM and RTMA applied to the same APK."
+  },
+  "results": {
+    "DREBIN":            {"clean": 0.907, "MM": 0.714, "RTMA": 0.907, "MM+RTMA": 0.713},
+    "MaMaDroid":         {"clean": 0.921, "MM": 0.739, "RTMA": 0.916, "MM+RTMA": 0.734},
+    "DexRay":            {"clean": 0.961, "MM": 0.929, "RTMA": 0.952, "MM+RTMA": 0.921},
+    "MaskDroid":         {"clean": 0.967, "MM": 0.946, "RTMA": 0.961, "MM+RTMA": 0.940},
+    "Single-Agent RL":   {"clean": 0.947, "MM": 0.872, "RTMA": 0.839, "MM+RTMA": 0.781},
+    "TrustGuard (ours)": {"clean": 0.963, "MM": 0.891, "RTMA": 0.847, "MM+RTMA": 0.802}
+  },
+  "key_findings": [
+    "Manifest-consuming methods are hit hardest by MM (DREBIN -19.3, MaMaDroid -18.2 AUROC points); code/graph-structural methods are largely insulated (DexRay -3.2, MaskDroid -2.1).",
+    "TrustGuard sits in between under MM (-7.2) because the declared-permission vector is one of four encoder inputs, diluted by description/code/graph channels MM cannot touch.",
+    "Under RTMA TrustGuard loses 11.6 points (0.963 -> 0.847) where install-time methods barely move (<= 0.9).",
+    "Under the composed attack TrustGuard retains 0.802 but its advantage over DexRay/MaskDroid inverts; the runtime-trace dependency is the composed attack's entry point.",
+    "Runtime governance's case rests on enforcement (task2_enforcement.json), not adversarial dominance."
+  ]
+}

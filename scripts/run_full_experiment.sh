@@ -6,7 +6,12 @@
 #   2. MARL training via Constrained MAPPO
 #   3. Task 1: Permission risk prediction evaluation
 #   4. Task 2: Autonomous enforcement evaluation (72h simulation)
-#   5. Task 3: Adversarial robustness evaluation (mimicry attack)
+#   5. Task 3: Adversarial robustness evaluation (MM + RTMA)
+#   6. Temporal hold-out evaluation (TESSERACT protocol)
+#   7. Stress tests (AASE-B held-out generator, low prevalence, recalibration)
+#
+# For the paper's five-seed protocol use scripts/run_all_seeds.sh.
+# Final paper numbers for every table live in results/ for comparison.
 #
 # Usage:
 #   bash scripts/run_full_experiment.sh [OUTPUT_DIR] [SEED] [DATA_DIR]
@@ -63,7 +68,7 @@ python experiments/evaluate_enforcement.py \
 
 # ── Task 3: Adversarial robustness ───────────────────────────────────────────
 echo ""
-echo ">>> [4/5] Task 3: Adversarial robustness (mimicry attack) ..."
+echo ">>> [4/7] Task 3: Adversarial robustness (MM + RTMA) ..."
 python experiments/adversarial_evaluation.py \
     --checkpoint "$CKPT" \
     --data-dir   "$DATA_DIR" \
@@ -71,18 +76,41 @@ python experiments/adversarial_evaluation.py \
     --output-dir "$OUTPUT_DIR/eval_task3" \
     --seed       "$SEED"
 
+# ── Temporal hold-out ─────────────────────────────────────────────────────────
+echo ""
+echo ">>> [5/7] Temporal hold-out evaluation (train 2012-2018, test 2019-2021) ..."
+python experiments/evaluate_temporal.py \
+    --checkpoint "$CKPT" \
+    --data-dir   "$DATA_DIR" \
+    --config-dir "$CONFIG_DIR" \
+    --output-dir "$OUTPUT_DIR/eval_temporal" \
+    --seed       "$SEED"
+
+# ── Stress tests ──────────────────────────────────────────────────────────────
+echo ""
+echo ">>> [6/7] Stress tests (AASE-B, low prevalence, dual recalibration) ..."
+python experiments/stress_tests.py \
+    --checkpoint "$CKPT" \
+    --config-dir "$CONFIG_DIR" \
+    --output-dir "$OUTPUT_DIR/eval_stress" \
+    --protocol   all \
+    --seed       "$SEED"
+
 # ── Collect results ───────────────────────────────────────────────────────────
 echo ""
-echo ">>> [5/5] Aggregating results ..."
-python - <<'PYEOF'
+echo ">>> [7/7] Aggregating results ..."
+python - "$OUTPUT_DIR" <<'PYEOF'
 import json, pathlib, sys
 
-base = pathlib.Path("$OUTPUT_DIR")
+base = pathlib.Path(sys.argv[1])
 results = {}
 
-for task_dir in ["eval_task1", "eval_task2", "eval_task3"]:
+for task_dir in ["eval_task1", "eval_task2", "eval_task3",
+                 "eval_temporal", "eval_stress"]:
     p = base / task_dir
-    for jf in p.glob("*.json"):
+    if not p.is_dir():
+        continue
+    for jf in sorted(p.glob("*.json")):
         with open(jf) as f:
             results[task_dir] = json.load(f)
         break
@@ -92,8 +120,8 @@ with open(out, "w") as f:
     json.dump(results, f, indent=2)
 
 print(f"Results summary saved to {out}")
-for k, v in results.items():
-    print(f"  {k}: {v}")
+for k in results:
+    print(f"  collected: {k}")
 PYEOF
 
 echo ""

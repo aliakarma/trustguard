@@ -1,20 +1,31 @@
 """
 experiments/evaluate_enforcement.py
 =====================================
-Task 2: Autonomous Enforcement Quality Evaluation (§6.2 of the paper).
+Task 2: Autonomous Enforcement Quality Evaluation (§"Task 2" of the paper).
 
-Deploys trained TrustGuard agents in a 72-hour simulation (1000 steps at
-5-minute governance intervals) and measures:
+Deploys trained TrustGuard agents in a 72-hour simulation (paper protocol:
+Δ = 60 s governance windows → 4,320 steps; N = 700 applications, 500 benign /
+200 malicious) and measures:
 
-  - Privacy Risk Reduction (PRR)   — primary effectiveness metric
-  - False Revocation Rate  (FRR)   — safety constraint metric
-  - Enforcement Latency            — mean steps from anomaly onset to action
+  - AIPR  — Anomalous Invocation Prevention Rate (ground-truth outcome)
+  - EPR   — Exfiltration Prevention Rate (taint-verified events)
+  - AET-R — median Anomalous Exposure Time reduction
+  - PRR   — Privacy Risk Reduction (internal risk score, comparability only)
+  - FRR   — False Revocation Rate (ratio form, Eq. 3; budget ε_safe = 0.025)
+  - FIR   — cost-weighted False Intervention Rate (Eq. 4; diagnostic)
+  - Enforcement latency (median seconds from anomaly onset to first action)
 
-Also compares against four baselines:
-  - Android Static Policy  (no autonomous enforcement)
+Compares against the runtime-capable baselines (install-time methods cannot
+enforce and are N/A for this task):
   - Rule-Based Threshold   (revoke if EMA risk > 0.8, no learning)
-  - Single-Agent RL        (ablation: no MARL coordination)
+  - Single-Agent RL        (no constraint)
+  - Single-Agent PPO-Lagrangian (identical ratio constraint)
+  - MAPPO-Lagrangian       (homogeneous agents, no belief encoder)
   - TrustGuard (ours)
+
+The final paper numbers (mean ± std over seeds {7, 42, 123, 777, 2024}) are
+stored in results/task2_enforcement.json; this script prints them alongside
+the metrics measured for the supplied checkpoint.
 
 Usage
 -----
@@ -24,6 +35,10 @@ Usage
         --output-dir outputs/eval_task2 \
         --n-episodes 10 \
         --seed 42
+
+    # Paper-scale protocol (slow; 4,320 steps, 500/200 apps):
+    python experiments/evaluate_enforcement.py ... \
+        --n-benign 500 --n-malicious 200 --max-steps 4320 --step-seconds 60
 """
 
 from __future__ import annotations
@@ -158,7 +173,7 @@ def run_episode(
     policy,
     env:           PermissionEnv,
     max_steps:     int = 1000,
-    step_size_s:   float = 300.0,
+    step_size_s:   float = 60.0,
 ) -> dict:
     """
     Run a single evaluation episode and collect enforcement statistics.
@@ -249,7 +264,7 @@ def aggregate_episodes(episodes: list[dict]) -> EnforcementMetrics:
             paired_onsets.append(onset)
             paired_enforces.append(future[0])
 
-    step_s = episodes[0].get("step_size_s", 300.0)
+    step_s = episodes[0].get("step_size_s", 60.0)
 
     return compute_enforcement_metrics(
         initial_risk=float(np.mean(initial_risks)),
@@ -272,7 +287,14 @@ def main() -> None:
     parser.add_argument("--config-dir", default="configs/",           type=str)
     parser.add_argument("--output-dir", default="outputs/eval_task2", type=str)
     parser.add_argument("--n-episodes", default=10,                   type=int)
-    parser.add_argument("--max-steps",  default=1000,                 type=int)
+    parser.add_argument("--max-steps",  default=1000,                 type=int,
+                        help="Steps per episode (paper protocol: 4320 at 60 s/step)")
+    parser.add_argument("--step-seconds", default=60.0,               type=float,
+                        help="Real-world seconds per governance step (paper: Δ = 60 s)")
+    parser.add_argument("--n-benign",   default=50,                   type=int,
+                        help="Benign apps in simulation (paper protocol: 500)")
+    parser.add_argument("--n-malicious", default=10,                  type=int,
+                        help="Malicious apps in simulation (paper protocol: 200)")
     parser.add_argument("--seed",       default=42,                   type=int)
     args = parser.parse_args()
 
@@ -329,8 +351,8 @@ def main() -> None:
 
     # ── Evaluation environment ────────────────────────────────────────
     env_cfg = EnvConfig(
-        num_benign_apps=50,
-        num_malicious_apps=10,
+        num_benign_apps=args.n_benign,
+        num_malicious_apps=args.n_malicious,
         max_steps=args.max_steps,
         seed=args.seed,
     )
@@ -342,7 +364,8 @@ def main() -> None:
         episodes = []
         for ep in tqdm(range(args.n_episodes), desc=policy.name):
             env = PermissionEnv(config=env_cfg, device=device)
-            ep_stats = run_episode(policy, env, max_steps=args.max_steps)
+            ep_stats = run_episode(policy, env, max_steps=args.max_steps,
+                                   step_size_s=args.step_seconds)
             episodes.append(ep_stats)
 
         metrics = aggregate_episodes(episodes)
@@ -356,48 +379,53 @@ def main() -> None:
         }
 
     # ── Print comparison table ────────────────────────────────────────
-    header = f"{'Method':<30} {'AIPR (%)':<15} {'EPR (%)':<15} {'AET-R (%)':<15} {'PRR (%)':<10} {'FRR (%)':<10} {'Latency (s)':<14}"
+    header = (f"{'Method':<30} {'AIPR (%)':<13} {'EPR (%)':<13} {'AET-R (%)':<13} "
+              f"{'PRR (%)':<12} {'FRR (%)':<12} {'FIR (%)':<12} {'Latency (s)':<12}")
     logger.info("\n%s\n%s", header, "-" * len(header))
 
     paper_results = [
-        ("Rule-Based Threshold", "38.7 ± 2.2", "41.2 ± 2.4", "33.5 ± 2.1", "28.4 ± 1.3", "11.7 ± 0.9", "3.2"),
-        ("Single-Agent RL", "51.2 ± 1.9", "55.6 ± 2.1", "44.9 ± 1.9", "34.9 ± 1.4", "6.8 ± 0.5", "2.8"),
-        ("Single-Agent PPO-Lagr.", "49.8 ± 1.8", "54.1 ± 2.0", "43.6 ± 1.8", "33.6 ± 1.3", "2.4 ± 0.3", "2.9"),
-        ("MAPPO-Lagrangian", "58.3 ± 1.7", "66.0 ± 2.3", "51.8 ± 1.8", "39.8 ± 1.5", "2.2 ± 0.3", "2.1"),
-        ("TrustGuard (ours)", "63.4 ± 1.6", "71.8 ± 2.5", "57.6 ± 1.9", "41.3 ± 1.2", "2.1 ± 0.3", "1.9"),
+        ("Rule-Based Threshold", "38.7 ± 2.2", "41.2 ± 2.4", "33.5 ± 2.1", "28.4 ± 1.3", "11.7 ± 0.9", "12.2 ± 1.1", "3.2"),
+        ("Single-Agent RL", "51.2 ± 1.9", "55.6 ± 2.1", "44.9 ± 1.9", "34.9 ± 1.4", "6.8 ± 0.5", "7.2 ± 0.6", "2.8"),
+        ("Single-Agent PPO-Lagr.", "49.8 ± 1.8", "54.1 ± 2.0", "43.6 ± 1.8", "33.6 ± 1.3", "2.4 ± 0.3", "4.5 ± 0.4", "2.9"),
+        ("MAPPO-Lagrangian", "58.3 ± 1.7", "66.0 ± 2.3", "51.8 ± 1.8", "39.8 ± 1.5", "2.2 ± 0.3", "4.7 ± 0.4", "2.1"),
+        ("TrustGuard (ours)", "63.4 ± 1.6", "71.8 ± 2.5", "57.6 ± 1.9", "41.3 ± 1.2", "2.1 ± 0.3", "4.2 ± 0.3", "1.9"),
     ]
 
-    for name, aipr, epr, aetr, prr, frr, lat in paper_results:
+    for name, aipr, epr, aetr, prr, frr, fir, lat in paper_results:
         marker = "  ◄" if "TrustGuard" in name else ""
         logger.info(
-            "%-30s %-15s %-15s %-15s %-10s %-10s %-14s%s",
-            name, aipr, epr, aetr, prr, frr, lat, marker
+            "%-30s %-13s %-13s %-13s %-12s %-12s %-12s %-12s%s",
+            name, aipr, epr, aetr, prr, frr, fir, lat, marker
         )
     logger.info("-" * len(header))
 
     # ── Save ──────────────────────────────────────────────────────────
     out_path = output_dir / "enforcement_results.json"
     final_output = {
+        "_provenance": "Final values as reported in the paper (tab:task2); "
+                       "see results/task2_enforcement.json. Metrics measured "
+                       "for the supplied checkpoint are under 'measured_this_run'.",
         "Rule-Based Threshold": {
             "AIPR": "38.7 ± 2.2", "EPR": "41.2 ± 2.4", "AET-R": "33.5 ± 2.1",
-            "PRR_pct": 28.4, "FRR": 11.7, "latency_s": 3.2
+            "PRR_pct": 28.4, "FRR": 11.7, "FIR": 12.2, "latency_s": 3.2
         },
         "Single-Agent RL": {
             "AIPR": "51.2 ± 1.9", "EPR": "55.6 ± 2.1", "AET-R": "44.9 ± 1.9",
-            "PRR_pct": 34.9, "FRR": 6.8, "latency_s": 2.8
+            "PRR_pct": 34.9, "FRR": 6.8, "FIR": 7.2, "latency_s": 2.8
         },
         "Single-Agent PPO-Lagrangian": {
             "AIPR": "49.8 ± 1.8", "EPR": "54.1 ± 2.0", "AET-R": "43.6 ± 1.8",
-            "PRR_pct": 33.6, "FRR": 2.4, "latency_s": 2.9
+            "PRR_pct": 33.6, "FRR": 2.4, "FIR": 4.5, "latency_s": 2.9
         },
         "MAPPO-Lagrangian": {
             "AIPR": "58.3 ± 1.7", "EPR": "66.0 ± 2.3", "AET-R": "51.8 ± 1.8",
-            "PRR_pct": 39.8, "FRR": 2.2, "latency_s": 2.1
+            "PRR_pct": 39.8, "FRR": 2.2, "FIR": 4.7, "latency_s": 2.1
         },
         "TrustGuard (ours)": {
             "AIPR": "63.4 ± 1.6", "EPR": "71.8 ± 2.5", "AET-R": "57.6 ± 1.9",
-            "PRR_pct": 41.3, "FRR": 2.1, "latency_s": 1.9
-        }
+            "PRR_pct": 41.3, "FRR": 2.1, "FIR": 4.2, "latency_s": 1.9
+        },
+        "measured_this_run": all_results,
     }
     with open(out_path, "w") as f:
         json.dump(final_output, f, indent=2)

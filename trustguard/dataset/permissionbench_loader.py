@@ -3,7 +3,7 @@ trustguard/dataset/permissionbench_loader.py
 =============================================
 PermissionBench dataset loader and PyTorch Dataset wrapper.
 
-PermissionBench comprises 87,412 annotated application records:
+PermissionBench comprises 76,352 annotated application records:
   - 61,840 benign (from AndroZoo, Google Play)
   - 14,512 malicious (from Drebin + MalDroid-2020)
 

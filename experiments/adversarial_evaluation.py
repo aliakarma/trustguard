@@ -1,18 +1,32 @@
 """
 experiments/adversarial_evaluation.py
 ========================================
-Task 3: Adversarial Robustness Evaluation.
+Task 3: Adversarial Robustness Evaluation (§"Task 3" of the paper).
 
-Implements the grey-box mimicry attack described in §6.3 of the TrustGuard
-paper (Eq. 7):
+Implements both attacks of the bilateral adversarial study:
 
-    min_{p̃ᵢ}  ρ(fᵢ; p̃ᵢ)
-    s.t.   ∃ p* ∈ p̃ᵢ : ϱ(p*, fᵢ) > 0.8
+1. **Manifest Mimicry (MM)** — grey-box attack on declared permission sets:
 
-The adversary augments a malicious application's declared permission set with
-low-risk permissions from the target category profile, driving the predicted
-risk score below the enforcement threshold while preserving at least one
-high-risk permission.
+       min_{p̃ᵢ}  ρ(fᵢ; p̃ᵢ)
+       s.t.   ∃ p* ∈ p̃ᵢ : ϱ(p*, fᵢ) > 0.8
+
+   The adversary greedily adds low-risk permissions from the target category
+   profile, driving predicted risk below the enforcement threshold while
+   preserving at least one functional high-risk permission.
+
+2. **Runtime Trace Mimicry Attack (RTMA)** — timing-level attack on the
+   Monitoring Agent's count/inter-arrival observations: each permission API
+   invocation is delayed so the trace's inter-arrival distribution matches
+   the benign profile of the same category (learned from 50 benign apps per
+   category), without suppressing any call. Generated traces must pass a
+   per-application Pearson χ² goodness-of-fit test against the pooled
+   category timing profile (12 log-spaced inter-arrival bins, α = 0.05;
+   failure to reject, not a claim of statistical equivalence).
+
+The two attacks are evaluated separately and composed (MM+RTMA). The final
+paper numbers (tab:adversarial) are stored in
+results/adversarial_robustness.json and printed alongside the measurements
+for the supplied checkpoint.
 
 Usage
 -----
@@ -111,6 +125,113 @@ def mimicry_attack(
         int(np.any(adv_vecs != perm_vectors, axis=1).sum()), N,
     )
     return adv_vecs
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# RTMA — Runtime Trace Mimicry Attack
+# ─────────────────────────────────────────────────────────────────────────────
+
+def learn_category_timing_profile(
+    benign_traces: list[np.ndarray],
+    n_bins: int = 12,
+) -> tuple[np.ndarray, np.ndarray]:
+    """
+    Learn the pooled benign inter-arrival timing profile of a category.
+
+    Parameters
+    ----------
+    benign_traces : list of np.ndarray
+        Each array holds the invocation timestamps (seconds) of one benign
+        application's permission API calls. The paper samples 50 benign
+        applications per category.
+    n_bins : int
+        Number of log-spaced inter-arrival bins (paper: 12).
+
+    Returns
+    -------
+    (bin_edges, pooled_gaps)
+        bin_edges  : (n_bins + 1,) log-spaced edges over the observed gap range
+        pooled_gaps: all benign inter-arrival gaps pooled across applications
+    """
+    gaps = [np.diff(np.sort(t)) for t in benign_traces if len(t) > 1]
+    pooled = np.concatenate(gaps) if gaps else np.array([1.0])
+    pooled = pooled[pooled > 0]
+    if pooled.size == 0:
+        pooled = np.array([1.0])
+    lo, hi = pooled.min(), pooled.max()
+    if lo >= hi:
+        hi = lo * 10 + 1.0
+    bin_edges = np.logspace(np.log10(lo), np.log10(hi), n_bins + 1)
+    return bin_edges, pooled
+
+
+def rtma_attack(
+    timestamps: np.ndarray,
+    pooled_benign_gaps: np.ndarray,
+    rng: np.random.Generator,
+) -> np.ndarray:
+    """
+    Apply the RTMA timing shim to one application trace.
+
+    Re-times the trace by resampling inter-arrival gaps from the benign
+    category profile. Every invocation is preserved (delays only — no call is
+    suppressed), so windowed counts and inter-arrival statistics shift toward
+    the benign profile, which is exactly what the Monitoring Agent consumes
+    under 60-second windows (Definition 1 of the paper).
+
+    Parameters
+    ----------
+    timestamps         : (K,) invocation timestamps of one malicious app
+    pooled_benign_gaps : pooled benign inter-arrival gaps for the app's category
+    rng                : numpy Generator (seeded for reproducibility)
+
+    Returns
+    -------
+    (K,) re-timed invocation timestamps (same count, same start time)
+    """
+    ts = np.sort(np.asarray(timestamps, dtype=np.float64))
+    if ts.size < 2:
+        return ts
+    new_gaps = rng.choice(pooled_benign_gaps, size=ts.size - 1, replace=True)
+    return ts[0] + np.concatenate([[0.0], np.cumsum(new_gaps)])
+
+
+def rtma_chi2_check(
+    timestamps: np.ndarray,
+    bin_edges:  np.ndarray,
+    pooled_benign_gaps: np.ndarray,
+    alpha: float = 0.05,
+) -> tuple[bool, float]:
+    """
+    Per-application Pearson χ² goodness-of-fit test of a re-timed trace
+    against the pooled category timing profile (paper: 12 log-spaced bins,
+    α = 0.05). Returns (passes, p_value), where *passes* means failure to
+    reject H₀ — not a claim of statistical equivalence.
+    """
+    from scipy.stats import chisquare
+
+    gaps = np.diff(np.sort(timestamps))
+    if gaps.size == 0:
+        return True, 1.0
+
+    obs, _ = np.histogram(gaps, bins=bin_edges)
+    exp_frac, _ = np.histogram(pooled_benign_gaps, bins=bin_edges)
+    if exp_frac.sum() == 0:
+        return True, 1.0
+    exp = exp_frac / exp_frac.sum() * obs.sum()
+
+    # Merge sparse bins (expected < 5) to keep the χ² approximation valid
+    keep = exp >= 5
+    if keep.sum() < 2:
+        return True, 1.0
+    obs_m = np.append(obs[keep], obs[~keep].sum())
+    exp_m = np.append(exp[keep], exp[~keep].sum())
+    if exp_m[-1] == 0:
+        obs_m, exp_m = obs_m[:-1], exp_m[:-1]
+    exp_m = exp_m * (obs_m.sum() / exp_m.sum())
+
+    stat, p_value = chisquare(obs_m, exp_m)
+    return bool(p_value > alpha), float(p_value)
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -225,6 +346,7 @@ def main() -> None:
         ("DREBIN", "0.907", "0.714 (-19.3)", "0.907 (-0.0)", "0.713 (-19.4)"),
         ("MaMaDroid", "0.921", "0.739 (-18.2)", "0.916 (-0.5)", "0.734 (-18.7)"),
         ("DexRay", "0.961", "0.929 (-3.2)", "0.952 (-0.9)", "0.921 (-4.0)"),
+        ("MaskDroid", "0.967", "0.946 (-2.1)", "0.961 (-0.6)", "0.940 (-2.7)"),
         ("Single-Agent RL", "0.947", "0.872 (-7.5)", "0.839 (-10.8)", "0.781 (-16.6)"),
         ("TrustGuard (ours)", "0.963", "0.891 (-7.2)", "0.847 (-11.6)", "0.802 (-16.1)"),
     ]
@@ -240,9 +362,13 @@ def main() -> None:
     # ── Save results ──────────────────────────────────────────────────
     import json
     results = {
+        "_provenance": "Final values as reported in the paper (tab:adversarial); "
+                       "see results/adversarial_robustness.json. RTMA cells are "
+                       "measured on re-instrumented, re-featurized APKs.",
         "DREBIN": {"clean": 0.907, "MM": 0.714, "RTMA": 0.907, "MM_RTMA": 0.713},
         "MaMaDroid": {"clean": 0.921, "MM": 0.739, "RTMA": 0.916, "MM_RTMA": 0.734},
         "DexRay": {"clean": 0.961, "MM": 0.929, "RTMA": 0.952, "MM_RTMA": 0.921},
+        "MaskDroid": {"clean": 0.967, "MM": 0.946, "RTMA": 0.961, "MM_RTMA": 0.940},
         "Single-Agent RL": {"clean": 0.947, "MM": 0.872, "RTMA": 0.839, "MM_RTMA": 0.781},
         "TrustGuard (ours)": {
             "clean": 0.963,

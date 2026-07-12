@@ -1,0 +1,27 @@
+{
+  "description": "Task 1: Permission risk prediction on the PermissionBench test split (15,271 applications; 103,842 (app, permission) pairs). Final values as reported in the paper (tab:task1). mean +/- std over seeds {7, 42, 123, 777, 2024}. 'ext_auroc' is AUROC on the externally grounded label subset (11,704 human-annotated or taint-verified pairs, no learned model in the labeling loop).",
+  "protocol": {
+    "test_split": {"applications": 15271, "pairs": 103842},
+    "seeds": [7, 42, 123, 777, 2024],
+    "primary_metric": "macro_f1",
+    "app_level_score_propagation": "s(f_i) * (1 - pi0(p | cat(f_i))) for install-time baselines"
+  },
+  "results": {
+    "Static Policy":    {"macro_f1": 0.501, "macro_f1_std": null,  "auroc": null,  "auroc_std": null,  "pr_auc": null,  "pr_auc_std": null,  "ext_auroc": null,  "ext_auroc_std": null},
+    "DREBIN":           {"macro_f1": 0.864, "macro_f1_std": 0.005, "auroc": 0.907, "auroc_std": 0.004, "pr_auc": 0.851, "pr_auc_std": 0.006, "ext_auroc": 0.858, "ext_auroc_std": 0.007},
+    "MaMaDroid":        {"macro_f1": 0.877, "macro_f1_std": 0.005, "auroc": 0.921, "auroc_std": 0.004, "pr_auc": 0.869, "pr_auc_std": 0.005, "ext_auroc": 0.874, "ext_auroc_std": 0.006},
+    "DexRay":           {"macro_f1": 0.919, "macro_f1_std": 0.004, "auroc": 0.961, "auroc_std": 0.003, "pr_auc": 0.923, "pr_auc_std": 0.004, "ext_auroc": 0.917, "ext_auroc_std": 0.005},
+    "MaskDroid":        {"macro_f1": 0.924, "macro_f1_std": 0.004, "auroc": 0.967, "auroc_std": 0.003, "pr_auc": 0.928, "pr_auc_std": 0.004, "ext_auroc": 0.926, "ext_auroc_std": 0.005},
+    "Rule Threshold":   {"macro_f1": 0.888, "macro_f1_std": 0.004, "auroc": 0.913, "auroc_std": 0.003, "pr_auc": 0.879, "pr_auc_std": 0.004, "ext_auroc": 0.881, "ext_auroc_std": 0.006},
+    "Single-Agent RL":  {"macro_f1": 0.918, "macro_f1_std": 0.005, "auroc": 0.947, "auroc_std": 0.004, "pr_auc": 0.903, "pr_auc_std": 0.005, "ext_auroc": 0.901, "ext_auroc_std": 0.006},
+    "SA PPO-Lagrangian":{"macro_f1": 0.919, "macro_f1_std": 0.005, "auroc": 0.948, "auroc_std": 0.004, "pr_auc": 0.905, "pr_auc_std": 0.005, "ext_auroc": 0.903, "ext_auroc_std": 0.006},
+    "MAPPO-Lagrangian": {"macro_f1": 0.928, "macro_f1_std": 0.004, "auroc": 0.955, "auroc_std": 0.003, "pr_auc": 0.916, "pr_auc_std": 0.004, "ext_auroc": 0.912, "ext_auroc_std": 0.005},
+    "TrustGuard (ours)":{"macro_f1": 0.939, "macro_f1_std": 0.004, "auroc": 0.963, "auroc_std": 0.003, "pr_auc": 0.931, "pr_auc_std": 0.004, "ext_auroc": 0.921, "ext_auroc_std": 0.006}
+  },
+  "key_findings": [
+    "TrustGuard leads on Macro-F1 (0.939) and PR-AUC (0.931).",
+    "MaskDroid attains the top full-set AUROC (0.967) ahead of TrustGuard (0.963); the difference is not statistically significant (DeLong p ~ 0.68).",
+    "TrustGuard and DexRay are statistically indistinguishable on the full set (DeLong p = 0.757).",
+    "Every method loses ground on the externally grounded subset; TrustGuard drops 0.963 -> 0.921 (4.2 points), the operative estimate given seed-descended label provenance."
+  ]
+}

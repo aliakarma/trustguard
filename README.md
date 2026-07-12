@@ -19,15 +19,24 @@ Mobile permission systems rely on **static policies and uninformed user prompts*
 
 Three cooperative agents — **Monitoring**, **Risk-Analysis**, and **Enforcement** — are trained via Centralised Training / Decentralised Execution (CTDE) using MAPPO with a **Lagrangian safety constraint** that bounds the false-revocation rate.
 
-### Key Results
+### Key Results (final paper numbers; mean ± std over 5 seeds)
 
-| Metric | TrustGuard | Best Baseline |
+| Metric | TrustGuard | Best baseline |
 |--------|-----------|---------------|
-| Permission Risk AUROC | **0.963** | 0.921 (MaMaDroid) |
-| Privacy Risk Reduction | **41.3%** | 34.9% (Single-Agent RL) |
-| False Revocation Rate | **2.1%** | 6.8% (Single-Agent RL) |
-| Enforcement Latency | **1.9 s** | 2.8 s |
-| AUROC under Mimicry Attack | **0.891** | 0.739 (MaMaDroid) |
+| Anomalous Invocation Prevention Rate (AIPR) | **63.4%** | 58.3% (MAPPO-Lagrangian) |
+| Exfiltration Prevention Rate (EPR, taint-verified) | **71.8%** | 66.0% (MAPPO-Lagrangian) |
+| False Revocation Rate (budget ε = 2.5%) | **2.1%** | 2.2% (MAPPO-Lagrangian) |
+| Enforcement latency (median) | **1.9 s** | 2.1 s |
+| Task-1 Macro-F1 / PR-AUC | **0.939 / 0.931** | 0.924 / 0.928 (MaskDroid) |
+| Task-1 AUROC (full set) | 0.963 | **0.967** (MaskDroid, n.s., p ≈ 0.68) |
+| AUROC under manifest mimicry | 0.891 | 0.946 (MaskDroid) — install-time only |
+| AUROC under RTMA (timing attack) | 0.847 (−11.6) | install-time methods ≤ −0.9 |
+
+Headline enforcement metrics (AIPR/EPR) are measured against
+model-independent ground truth; install-time classifiers (DREBIN, MaMaDroid,
+DexRay, MaskDroid) cannot enforce at runtime, which is the paper's central
+argument. Full tables: [`results/`](results/) · reproduction guide:
+[`docs/reproducibility.md`](docs/reproducibility.md).
 
 ---
 
@@ -97,8 +106,14 @@ trustguard/
 ├── experiments/                 # Runnable experiment scripts
 │   ├── train_trustguard.py      # Main training script
 │   ├── evaluate_prediction.py   # Task 1: permission risk prediction
-│   ├── evaluate_enforcement.py  # Task 2: autonomous enforcement
-│   └── adversarial_evaluation.py # Task 3: mimicry attack
+│   ├── evaluate_enforcement.py  # Task 2: autonomous enforcement (AIPR/EPR/FRR/FIR)
+│   ├── adversarial_evaluation.py # Task 3: manifest mimicry + RTMA
+│   ├── evaluate_temporal.py     # Temporal hold-out (TESSERACT protocol)
+│   ├── stress_tests.py          # AASE-B, low prevalence, dual recalibration
+│   ├── run_ablations.py         # Factorial / component / null ablations
+│   ├── sensitivity_analysis.py  # τ / λ / modality / EMA-α grids
+│   └── statistical_tests.py     # DeLong tests + bootstrap CIs
+├── results/                     # Final paper numbers, one JSON per table
 ├── configs/                     # YAML configuration files
 │   ├── model.yaml
 │   ├── marl.yaml
@@ -106,9 +121,11 @@ trustguard/
 │   └── dataset.yaml
 ├── scripts/
 │   ├── build_dataset.py
-│   └── run_full_experiment.sh
+│   ├── download_permissionbench.sh
+│   ├── run_full_experiment.sh   # Single-seed full pipeline
+│   └── run_all_seeds.sh         # Paper protocol: seeds {7, 42, 123, 777, 2024}
 ├── tests/                       # pytest test suite
-├── docs/                        # Extended documentation
+├── docs/                        # Extended documentation (incl. reproducibility.md)
 └── notebooks/
     └── trustguard_demo.ipynb
 ```
@@ -226,18 +243,20 @@ Accuracy=0.951 | Macro-F1=0.939 | AUROC=0.963 | AP=0.941
 ### Task 2 — Autonomous Enforcement (72h simulation)
 
 ```bash
+# Paper protocol: Δ = 60 s (4,320 steps), 500 benign / 200 malicious apps
 python experiments/evaluate_enforcement.py \
     --checkpoint outputs/run_001/checkpoint_best.pt \
     --output-dir outputs/eval_task2 \
+    --n-benign 500 --n-malicious 200 --max-steps 4320 \
     --n-episodes 10
 ```
 
-Expected output:
+Paper reference (results/task2_enforcement.json):
 ```
-PRR=41.3% | FRR=0.0210 | Latency=1.90s
+AIPR=63.4% | EPR=71.8% | AET-R=57.6% | PRR=41.3% | FRR=2.1% | FIR=4.2% | Latency=1.9s
 ```
 
-### Task 3 — Adversarial Robustness (Mimicry Attack)
+### Task 3 — Adversarial Robustness (Manifest Mimicry + RTMA)
 
 ```bash
 python experiments/adversarial_evaluation.py \
@@ -246,16 +265,33 @@ python experiments/adversarial_evaluation.py \
     --output-dir outputs/eval_task3
 ```
 
-Expected output:
+Paper reference (results/adversarial_robustness.json):
 ```
-AUROC (clean)=0.9630 | AUROC (attack)=0.8910 | Δ=-0.0720
+clean=0.963 | MM=0.891 (−7.2) | RTMA=0.847 (−11.6) | MM+RTMA=0.802 (−16.1)
+```
+
+### Temporal hold-out, stress tests, ablations, sensitivity, statistics
+
+```bash
+python experiments/evaluate_temporal.py    --checkpoint <ckpt> --data-dir data/permissionbench
+python experiments/stress_tests.py         --checkpoint <ckpt> --protocol all
+python experiments/run_ablations.py        --list
+python experiments/sensitivity_analysis.py --print-tables
+python experiments/statistical_tests.py    --print-paper
 ```
 
 ### Run all experiments
 
 ```bash
+# Single seed:
 bash scripts/run_full_experiment.sh outputs/run_001
+
+# Full paper protocol — five seeds {7, 42, 123, 777, 2024}:
+bash scripts/run_all_seeds.sh outputs/paper data/permissionbench
 ```
+
+Every paper table is mapped to its script and reference results file in
+[`docs/reproducibility.md`](docs/reproducibility.md).
 
 ---
 

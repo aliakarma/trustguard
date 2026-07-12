@@ -249,6 +249,13 @@ class AppSimulator:
 
     # ------------------------------------------------------------------
     @property
+    def profiles(self) -> list[AppProfile]:
+        """Per-application simulation profiles (mutable — used by the
+        stress-test protocols to swap the anomaly injection process)."""
+        return self._profiles
+
+    # ------------------------------------------------------------------
+    @property
     def malicious_mask(self) -> Tensor:
         """Boolean tensor shape (N,) — True for malicious apps."""
         return torch.tensor(

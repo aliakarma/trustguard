@@ -23,7 +23,7 @@ export default function PilotReport() {
   return (
     <div className="flex flex-col gap-6 animate-fade-in-up">
       {/* ── 1. Protocol Metadata Row ─────────────────────────────────── */}
-      <div className="grid grid-2 md:grid-5">
+      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
         <GlassPanel className="p-4 flex flex-col justify-between" style={{ minHeight: '100px' }}>
           <span className="stat-label">Duration</span>
           <span className="stat-value text-mono text-primary mt-2">
@@ -60,7 +60,7 @@ export default function PilotReport() {
       </div>
 
       {/* ── 2. Headline Results ──────────────────────────────────────── */}
-      <div className="grid grid-1 lg:grid-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Latency & Power */}
         <GlassPanel accentTop monitor className="p-5 flex flex-col gap-4">
           <h3 className="stat-label">On-Device Latency & Power Overhead</h3>

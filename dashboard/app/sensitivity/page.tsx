@@ -73,7 +73,7 @@ function SensitivityPanel({ t }: { t: any }) {
   const modalityResults = sensitivityAnalyses.encoder_modalities.results;
 
   return (
-    <div className="grid grid-1 lg:grid-2 gap-6">
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       {/* 1. Lambda Grid (λ₁ vs λ₂) */}
       <GlassPanel accentTop monitor className="p-5 flex flex-col justify-between">
         <div>
@@ -197,7 +197,7 @@ function AblationPanel({ t }: { t: any }) {
   const findings = ablations.key_findings;
 
   return (
-    <div className="grid grid-1 lg:grid-2 gap-6">
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       {/* Factorial 2x2 Grid */}
       <GlassPanel accentTop enforce className="p-5">
         <h3 className="stat-label mb-2">Factorial 2×2 Ablation Matrix</h3>
@@ -293,7 +293,7 @@ function DynamicsPanel({ t }: { t: any }) {
   const categoryFrr = constraintDynamics.per_category_frr;
 
   return (
-    <div className="grid grid-1 lg:grid-2 gap-6">
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       {/* 1. Training Convergence Curves */}
       <GlassPanel accentTop monitor className="p-5 flex flex-col justify-between">
         <div>

@@ -26,7 +26,7 @@ export default function DatasetExplorer() {
   return (
     <div className="flex flex-col gap-6 animate-fade-in-up">
       {/* ── 1. Split Distribution Cards ───────────────────────────────── */}
-      <div className="grid grid-1 md:grid-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {splits.map((s) => (
           <GlassPanel key={s.name} accentTop monitor className="p-5 flex flex-col justify-between">
             <div>
@@ -60,7 +60,7 @@ export default function DatasetExplorer() {
       <GlassPanel accentTop constraint className="p-6">
         <h3 className="stat-label mb-4">Annotation Bootstrap Protocol</h3>
 
-        <div className="grid grid-1 lg:grid-3 gap-4 mt-2">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-2">
           {/* Phase 1 */}
           <div className="bg-secondary/40 border border-subtle p-4 rounded-xl flex flex-col justify-between">
             <div>

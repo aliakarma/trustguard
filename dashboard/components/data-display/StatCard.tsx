@@ -55,43 +55,45 @@ export default function StatCard({
   }, [value, animate]);
 
   return (
-    <GlassPanel
-      accentTop
-      monitor={accentColor === 'monitor'}
-      risk={accentColor === 'risk'}
-      enforce={accentColor === 'enforce'}
-      safe={accentColor === 'safe'}
-      constraint={accentColor === 'constraint'}
-      className="p-4 flex flex-col justify-between animate-fade-in-up"
-      glow={accentColor === 'enforce' && value > 0.05} // Soft glow if high alert/revocations
-      style={{ minHeight: '120px' }}
-    >
-      <div className="flex justify-between items-start">
-        <span className="stat-label" title={tooltipKey ? t(tooltipKey) : undefined}>
-          {t(labelKey)}
-        </span>
-        {tooltipKey && (
-          <span
-            className="text-tertiary cursor-help text-xs"
-            title={t(tooltipKey)}
-          >
-            ⓘ
+    <div className="animate-fade-in-up h-full">
+      <GlassPanel
+        accentTop
+        monitor={accentColor === 'monitor'}
+        risk={accentColor === 'risk'}
+        enforce={accentColor === 'enforce'}
+        safe={accentColor === 'safe'}
+        constraint={accentColor === 'constraint'}
+        className="p-4 flex flex-col justify-between h-full"
+        glow={accentColor === 'enforce' && value > 0.05} // Soft glow if high alert/revocations
+        style={{ minHeight: '120px' }}
+      >
+        <div className="flex justify-between items-start">
+          <span className="stat-label" title={tooltipKey ? t(tooltipKey) : undefined}>
+            {t(labelKey)}
           </span>
-        )}
-      </div>
+          {tooltipKey && (
+            <span
+              className="text-tertiary cursor-help text-xs"
+              title={t(tooltipKey)}
+            >
+              ⓘ
+            </span>
+          )}
+        </div>
 
-      <div className="flex items-baseline mt-2">
-        <span className="stat-value text-mono">
-          {displayValue.toFixed(decimals)}
-          <span className="text-lg font-normal ml-0.5">{suffix}</span>
-        </span>
-
-        {std !== undefined && (
-          <span className="text-tertiary text-xs ml-2 font-mono">
-            ± {std.toFixed(decimals)}
+        <div className="flex items-baseline mt-2">
+          <span className="stat-value text-mono">
+            {displayValue.toFixed(decimals)}
+            <span className="text-lg font-normal ml-0.5">{suffix}</span>
           </span>
-        )}
-      </div>
-    </GlassPanel>
+
+          {std !== undefined && (
+            <span className="text-tertiary text-xs ml-2 font-mono">
+              ± {std.toFixed(decimals)}
+            </span>
+          )}
+        </div>
+      </GlassPanel>
+    </div>
   );
 }

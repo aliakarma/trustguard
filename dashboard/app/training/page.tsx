@@ -106,7 +106,7 @@ export default function TrainingMonitor() {
       </div>
 
       {/* ── 2. Live Graphs Grid ───────────────────────────────────────── */}
-      <div className="grid grid-1 md:grid-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Joint Reward */}
         <GlassPanel className="p-5 flex flex-col gap-4">
           <span className="stat-label">Average Episode Reward</span>
@@ -151,7 +151,7 @@ export default function TrainingMonitor() {
       </div>
 
       {/* ── 3. Loss & Entropy Grid ───────────────────────────────────── */}
-      <div className="grid grid-1 md:grid-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Actor Loss */}
         <GlassPanel className="p-5 flex flex-col gap-4">
           <span className="stat-label">Actor Loss (Policy Grad)</span>

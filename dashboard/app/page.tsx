@@ -37,7 +37,7 @@ export default function Home() {
   return (
     <div className="flex flex-col gap-6 animate-fade-in-up">
       {/* ── 1. Hero Metrics Row ───────────────────────────────────────── */}
-      <div className="grid grid-2 md:grid-5">
+      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
         <StatCard
           labelKey="metrics.aipr_short"
           value={tgEnforcement.AIPR_pct ?? 0}
@@ -81,7 +81,7 @@ export default function Home() {
       </div>
 
       {/* ── 2. Gauge & Summary Panels ─────────────────────────────────── */}
-      <div className="grid grid-1 lg:grid-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* FRR Safety Gauge */}
         <div className="lg:col-span-1">
           <GaugeChart

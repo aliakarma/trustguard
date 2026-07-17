@@ -50,7 +50,7 @@ export default function GaugeChart({
     <div className="flex flex-col items-center p-4 glass-panel accent-top--constraint">
       <h3 className="stat-label text-center mb-4">{titleKey}</h3>
       <div className="relative" style={{ width: size, height: size }}>
-        <svg width={size} height={size} className="transform rotate-90">
+        <svg width={size} height={size}>
           {/* Background Arc */}
           <circle
             cx={size / 2}

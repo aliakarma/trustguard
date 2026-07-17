@@ -64,7 +64,7 @@ export default function AgentInspector() {
   return (
     <div className="flex flex-col gap-6 animate-fade-in-up">
       {/* ── 1. Three-Agent Overview Columns ─────────────────────────── */}
-      <div className="grid grid-1 lg:grid-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Monitoring Card */}
         <GlassPanel accentTop monitor className="p-5 flex flex-col gap-3 justify-between">
           <div>

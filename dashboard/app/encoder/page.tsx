@@ -48,7 +48,7 @@ export default function SemanticEncoderVisualizer() {
   };
 
   return (
-    <div className="grid grid-1 xl:grid-3 gap-6 animate-fade-in-up">
+    <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 animate-fade-in-up">
       {/* ── 1. Input Panel (Left Column, xl:col-span-1) ───────────────── */}
       <div className="xl:col-span-1 flex flex-col gap-6">
         <GlassPanel accentTop monitor className="p-5 flex flex-col gap-4">

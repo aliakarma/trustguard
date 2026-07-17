@@ -47,7 +47,7 @@ export default function AdversarialLab() {
   }
 
   return (
-    <div className="grid grid-1 xl:grid-3 gap-6 animate-fade-in-up">
+    <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 animate-fade-in-up">
       {/* ── 1. Attack Configuration Panel (Left sidebar, xl:col-span-1) ── */}
       <div className="xl:col-span-1 flex flex-col gap-6">
         <GlassPanel accentTop enforce className="p-5 flex flex-col gap-4">
@@ -178,7 +178,7 @@ export default function AdversarialLab() {
         </GlassPanel>
 
         {/* Before / After App Comparison */}
-        <div className="grid grid-1 md:grid-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Before Card */}
           <GlassPanel className="p-5 flex flex-col gap-3">
             <span className="badge badge--safe">Clean Application</span>

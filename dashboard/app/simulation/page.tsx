@@ -187,7 +187,7 @@ export default function SimulationPlayground() {
   };
 
   return (
-    <div className="grid grid-1 xl:grid-4 gap-6 animate-fade-in-up">
+    <div className="grid grid-cols-1 xl:grid-cols-4 gap-6 animate-fade-in-up">
       {/* ── 1. Configuration Panel (Left Sidebar, xl:col-span-1) ──────── */}
       <div className="xl:col-span-1 flex flex-col gap-4 bg-panel p-5 rounded-xl border border-subtle">
         <h3 className="stat-label mb-2">{t('config')}</h3>

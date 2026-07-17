@@ -1,4 +1,5 @@
 import os
+import sys
 import json
 import yaml
 import asyncio
@@ -10,6 +11,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 # TrustGuard imports
+ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(ROOT_DIR)
+
 from trustguard.environment.permission_env import PermissionEnv, EnvConfig
 from trustguard.models.permission_predictor import NUM_PERMISSIONS, ANDROID_PERMISSIONS
 
@@ -386,5 +390,5 @@ async def ws_training(websocket: WebSocket):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="127.0.0.1", port=8000)
+    uvicorn.run(app, host="127.0.0.1", port=8001)
 

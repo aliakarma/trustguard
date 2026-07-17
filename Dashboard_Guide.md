@@ -1253,44 +1253,44 @@ backend/
 
 ### 21.1 Data Integrity
 
-- [ ] Every metric value displayed matches the corresponding `results/*.json` file exactly
-- [ ] Every equation rendered via KaTeX matches the paper's LaTeX source
-- [ ] Every architectural description matches the actual Python source code
-- [ ] Every hyperparameter default matches `configs/*.yaml`
-- [ ] Agent observation dimensions match: Monitoring=44, Risk=85, Enforcement=259
+- [x] Every metric value displayed matches the corresponding `results/*.json` file exactly
+- [x] Every equation rendered via KaTeX matches the paper's LaTeX source
+- [x] Every architectural description matches the actual Python source code
+- [x] Every hyperparameter default matches `configs/*.yaml`
+- [x] Agent observation dimensions match: Monitoring=44, Risk=85, Enforcement=259
 
 ### 21.2 Visual Quality
 
-- [ ] All glassmorphism panels have consistent blur, saturation, and border
-- [ ] All charts use the defined accent color palette (no off-brand colors)
-- [ ] All fonts load correctly (no fallback flicker)
-- [ ] All micro-animations are smooth (no jank or layout shift)
-- [ ] Dark mode has no white flashes on page load
-- [ ] Light mode charts print legibly in grayscale
+- [x] All glassmorphism panels have consistent blur, saturation, and border
+- [x] All charts use the defined accent color palette (no off-brand colors)
+- [x] All fonts load correctly (no fallback flicker)
+- [x] All micro-animations are smooth (no jank or layout shift)
+- [x] Dark mode has no white flashes on page load
+- [x] Light mode charts print legibly in grayscale
 
 ### 21.3 Interactivity
 
-- [ ] Simulation Playground runs correctly with all parameter combinations
-- [ ] Agent Inspector's custom observation input produces correct action distributions
-- [ ] Semantic Encoder input form handles edge cases (empty description, no permissions, etc.)
-- [ ] WebSocket reconnects gracefully on disconnection
-- [ ] Simulation can be paused, resumed, and stopped cleanly
+- [x] Simulation Playground runs correctly with all parameter combinations
+- [x] Agent Inspector's custom observation input produces correct action distributions
+- [x] Semantic Encoder input form handles edge cases (empty description, no permissions, etc.)
+- [x] WebSocket reconnects gracefully on disconnection
+- [x] Simulation can be paused, resumed, and stopped cleanly
 
 ### 21.4 Internationalization
 
-- [ ] All visible text uses translation keys (no hardcoded strings)
-- [ ] Arabic layout is fully RTL with correct text alignment
-- [ ] Charts display correctly in both directions
-- [ ] Technical terms in Arabic mode are wrapped in `<bdi>` tags
-- [ ] Font sizes accommodate Arabic text (which is typically ~10% taller)
+- [x] All visible text uses translation keys (no hardcoded strings)
+- [x] Arabic layout is fully RTL with correct text alignment
+- [x] Charts display correctly in both directions
+- [x] Technical terms in Arabic mode are wrapped in `<bdi>` tags
+- [x] Font sizes accommodate Arabic text (which is typically ~10% taller)
 
 ### 21.5 Deployment
 
-- [ ] Frontend builds with `next build` without errors
-- [ ] Backend starts with `uvicorn main:app` and passes health check
-- [ ] CORS is configured for the deployment domain
-- [ ] Environment variables documented: `CHECKPOINT_PATH`, `RESULTS_DIR`, `ALLOWED_ORIGINS`
-- [ ] Docker Compose file provided for one-command startup
+- [x] Frontend builds with `next build` without errors
+- [x] Backend starts with `uvicorn main:app` and passes health check
+- [x] CORS is configured for the deployment domain
+- [x] Environment variables documented: `CHECKPOINT_PATH`, `RESULTS_DIR`, `ALLOWED_ORIGINS`
+- [x] Docker Compose file provided for one-command startup
 
 ---
 

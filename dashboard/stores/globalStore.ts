@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 import type { Locale } from '@/i18n';
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -24,17 +25,28 @@ interface GlobalState {
   setActivePage: (page: string) => void;
 }
 
-export const useGlobalStore = create<GlobalState>((set) => ({
-  sidebarCollapsed: false,
-  toggleSidebar: () => set((s) => ({ sidebarCollapsed: !s.sidebarCollapsed })),
-  setSidebarCollapsed: (collapsed) => set({ sidebarCollapsed: collapsed }),
+export const useGlobalStore = create<GlobalState>()(
+  persist(
+    (set) => ({
+      sidebarCollapsed: false,
+      toggleSidebar: () => set((s) => ({ sidebarCollapsed: !s.sidebarCollapsed })),
+      setSidebarCollapsed: (collapsed) => set({ sidebarCollapsed: collapsed }),
 
-  locale: 'en',
-  setLocale: (locale) => set({ locale }),
+      locale: 'en',
+      setLocale: (locale) => set({ locale }),
 
-  wsConnected: false,
-  setWsConnected: (connected) => set({ wsConnected: connected }),
+      wsConnected: false,
+      setWsConnected: (connected) => set({ wsConnected: connected }),
 
-  activePage: 'command_center',
-  setActivePage: (page) => set({ activePage: page }),
-}));
+      activePage: 'command_center',
+      setActivePage: (page) => set({ activePage: page }),
+    }),
+    {
+      name: 'trustguard-global-state',
+      partialize: (state) => ({
+        sidebarCollapsed: state.sidebarCollapsed,
+        locale: state.locale,
+      }), // Only persist layout selections to avoid session pollution
+    }
+  )
+);

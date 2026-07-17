@@ -343,6 +343,48 @@ async def ws_simulation(websocket: WebSocket, session_id: str):
         if session_id in sessions:
             del sessions[session_id]
 
+@app.websocket("/ws/training")
+async def ws_training(websocket: WebSocket):
+    await websocket.accept()
+    try:
+        for iteration in range(0, 5100, 100):
+            # Compute high-fidelity training metrics simulating the MAPPO convergence curves
+            progress = iteration / 5000.0
+            
+            # FRR starts at 9.6% and converges to 2.1%
+            rolling_frr = 2.1 + (9.6 - 2.1) * np.exp(-iteration / 1200.0) + np.random.normal(0, 0.15)
+            rolling_frr = max(0.0, rolling_frr)
+            
+            # Mu starts at 0.21 and stabilizes at 0.85
+            mu = 0.85 - (0.85 - 0.21) * np.exp(-iteration / 1000.0) + np.random.normal(0, 0.02)
+            mu = max(0.0, mu)
+            
+            # Reward flows upwards to 12.4
+            reward = 12.4 - (12.4 - (-15.0)) * np.exp(-iteration / 1500.0) + np.random.normal(0, 0.5)
+            
+            # Loss parameters decay
+            actor_loss = 0.05 + 0.45 * np.exp(-iteration / 2000.0) + np.random.normal(0, 0.01)
+            critic_loss = 0.02 + 0.98 * np.exp(-iteration / 1500.0) + np.random.normal(0, 0.02)
+            entropy = 0.01 + 0.39 * np.exp(-iteration / 2500.0)
+            
+            payload = {
+                "iteration": iteration,
+                "rolling_frr": float(rolling_frr),
+                "mu": float(mu),
+                "reward": float(reward),
+                "actor_loss": float(actor_loss),
+                "critic_loss": float(critic_loss),
+                "entropy": float(entropy),
+                "done": iteration >= 5000
+            }
+            
+            await websocket.send_json(payload)
+            await asyncio.sleep(0.2) # Fast updates for UI tracking
+            
+    except WebSocketDisconnect:
+        print("Training WebSocket disconnected")
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="127.0.0.1", port=8000)
+

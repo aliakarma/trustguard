@@ -1,0 +1,19 @@
+{
+  "description": "Statistical tests as reported in the paper appendix 'Statistical Tests'. DeLong tests compare full-set Task-1 AUROC pairwise; bootstrap CIs are 95% intervals over 1,000 resamples of the 72-hour Task-2 window.",
+  "delong_tests": {
+    "TrustGuard vs DREBIN":    {"delta_auroc": 0.056,  "p_value": "<0.001"},
+    "TrustGuard vs MaMaDroid": {"delta_auroc": 0.042,  "p_value": "<0.001"},
+    "TrustGuard vs DexRay":    {"delta_auroc": 0.002,  "p_value": 0.757},
+    "TrustGuard vs MaskDroid": {"delta_auroc": -0.004, "p_value": 0.68}
+  },
+  "bootstrap_ci_95": {
+    "method": "1,000 resamples of the 72-hour evaluation window",
+    "TrustGuard":        {"AIPR_pct": [60.9, 65.8], "FRR_pct": [1.5, 2.8]},
+    "MAPPO-Lagrangian":  {"AIPR_pct": [55.7, 60.9], "FRR_pct": [1.6, 2.9]},
+    "SA PPO-Lagrangian": {"AIPR_pct": [46.9, 52.7], "FRR_pct": [1.7, 3.2]}
+  },
+  "key_findings": [
+    "TrustGuard and DexRay are statistically indistinguishable on full-set AUROC (p = 0.757); MaskDroid's marginal AUROC lead is likewise not significant (p ~ 0.68).",
+    "Non-overlapping AIPR intervals support the multi-agent enforcement gain over the single-agent constrained baseline."
+  ]
+}

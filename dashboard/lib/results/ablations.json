@@ -1,0 +1,25 @@
+{
+  "description": "Factorial, component, and null ablations (Task 2 protocol; paper tab:ablation). Final values as reported in the paper. mean +/- std over seeds {7, 42, 123, 777, 2024}.",
+  "factorial_2x2": {
+    "Multi + constraint (TrustGuard)": {"AIPR_pct": 63.4, "AIPR_std": 1.6, "PRR_pct": 41.3, "PRR_std": 1.2, "FRR_pct": 2.1, "FRR_std": 0.3},
+    "Multi - constraint":              {"AIPR_pct": 65.1, "AIPR_std": 1.8, "PRR_pct": 43.1, "PRR_std": 1.3, "FRR_pct": 8.9, "FRR_std": 0.7},
+    "Single + constraint":             {"AIPR_pct": 49.8, "AIPR_std": 1.8, "PRR_pct": 33.6, "PRR_std": 1.3, "FRR_pct": 2.4, "FRR_std": 0.3},
+    "Single - constraint":             {"AIPR_pct": 51.2, "AIPR_std": 1.9, "PRR_pct": 34.9, "PRR_std": 1.4, "FRR_pct": 6.8, "FRR_std": 0.5}
+  },
+  "component_ablations": {
+    "Local per-agent beliefs (strictly decentralized)": {"AIPR_pct": 59.7, "AIPR_std": 1.7, "PRR_pct": 39.1, "PRR_std": 1.3, "FRR_pct": 2.3, "FRR_std": 0.3},
+    "w/o semantic encoder":                             {"AIPR_pct": 44.6, "AIPR_std": 2.0, "PRR_pct": 29.4, "PRR_std": 1.5, "FRR_pct": 6.7, "FRR_std": 0.6},
+    "w/o runtime traces":                               {"AIPR_pct": 40.9, "AIPR_std": 2.1, "PRR_pct": 26.8, "PRR_std": 1.6, "FRR_pct": 5.1, "FRR_std": 0.5}
+  },
+  "null_ablations": {
+    "Homogeneous agents + belief encoder": {"AIPR_pct": 61.5, "AIPR_std": 1.7, "PRR_pct": 40.4, "PRR_std": 1.3, "FRR_pct": 2.2, "FRR_std": 0.3},
+    "Fixed Agents 1-2 (always-on)":        {"AIPR_pct": 62.9, "AIPR_std": 1.7, "PRR_pct": 40.9, "PRR_std": 1.3, "FRR_pct": 2.2, "FRR_std": 0.3}
+  },
+  "key_findings": [
+    "Agent structure drives coverage: +13.6 AIPR over the constrained single agent (63.4 vs 49.8) and +13.9 without constraint (65.1 vs 51.2).",
+    "The constraint acting with its reward shaping drives safety: FRR 8.9% -> 2.1% (multi), 6.8% -> 2.4% (single), at 1.7 / 1.4 AIPR coverage cost.",
+    "The +5.1 AIPR gap over MAPPO-Lagrangian decomposes as ~3.2 points from the shared belief encoder and ~1.9 from role specialization.",
+    "Fixing Agents 1-2 always-on costs only 0.5 AIPR points (within noise).",
+    "At lambda1 = 5 the trained policy settles at 3.6% FRR despite an active dual: the shaping is load-bearing (see sensitivity_analyses.json)."
+  ]
+}

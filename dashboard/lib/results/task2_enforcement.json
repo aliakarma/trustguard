@@ -1,0 +1,26 @@
+{
+  "description": "Task 2: Autonomous enforcement quality over 72-hour AASE simulations (N = 700 applications: 500 benign / 200 malicious; delta = 60 s windows, 4,320 steps). Final values as reported in the paper (tab:task2). mean +/- std over seeds {7, 42, 123, 777, 2024}. AIPR/EPR/AET-R are model-independent ground-truth outcomes; PRR is TrustGuard's internal risk score (comparability only); FIR is a cost-weighted diagnostic, not a trained constraint. Latency is the median seconds from anomaly onset to first enforcement.",
+  "protocol": {
+    "population": {"total": 700, "benign": 500, "malicious": 200},
+    "horizon_hours": 72,
+    "window_seconds": 60,
+    "steps": 4320,
+    "eps_safe": 0.025,
+    "seeds": [7, 42, 123, 777, 2024],
+    "injection": "log-normal-rate Poisson process, median 3.1 anomalous invocations/hour, 40/60 foreground/background"
+  },
+  "results": {
+    "Android Static Policy": {"AIPR_pct": null, "EPR_pct": null, "AETR_pct": null, "PRR_pct": null, "FRR_pct": null, "FIR_pct": null, "latency_s": null, "note": "install-time policy; cannot enforce at runtime"},
+    "Rule Threshold":        {"AIPR_pct": 38.7, "AIPR_std": 2.2, "EPR_pct": 41.2, "EPR_std": 2.4, "AETR_pct": 33.5, "AETR_std": 2.1, "PRR_pct": 28.4, "PRR_std": 1.3, "FRR_pct": 11.7, "FRR_std": 0.9, "FIR_pct": 12.2, "FIR_std": 1.1, "latency_s": 3.2},
+    "Single-Agent RL":       {"AIPR_pct": 51.2, "AIPR_std": 1.9, "EPR_pct": 55.6, "EPR_std": 2.1, "AETR_pct": 44.9, "AETR_std": 1.9, "PRR_pct": 34.9, "PRR_std": 1.4, "FRR_pct": 6.8,  "FRR_std": 0.5, "FIR_pct": 7.2,  "FIR_std": 0.6, "latency_s": 2.8},
+    "SA PPO-Lagrangian":     {"AIPR_pct": 49.8, "AIPR_std": 1.8, "EPR_pct": 54.1, "EPR_std": 2.0, "AETR_pct": 43.6, "AETR_std": 1.8, "PRR_pct": 33.6, "PRR_std": 1.3, "FRR_pct": 2.4,  "FRR_std": 0.3, "FIR_pct": 4.5,  "FIR_std": 0.4, "latency_s": 2.9},
+    "MAPPO-Lagrangian":      {"AIPR_pct": 58.3, "AIPR_std": 1.7, "EPR_pct": 66.0, "EPR_std": 2.3, "AETR_pct": 51.8, "AETR_std": 1.8, "PRR_pct": 39.8, "PRR_std": 1.5, "FRR_pct": 2.2,  "FRR_std": 0.3, "FIR_pct": 4.7,  "FIR_std": 0.4, "latency_s": 2.1},
+    "TrustGuard (ours)":     {"AIPR_pct": 63.4, "AIPR_std": 1.6, "EPR_pct": 71.8, "EPR_std": 2.5, "AETR_pct": 57.6, "AETR_std": 1.9, "PRR_pct": 41.3, "PRR_std": 1.2, "FRR_pct": 2.1,  "FRR_std": 0.3, "FIR_pct": 4.2,  "FIR_std": 0.3, "latency_s": 1.9}
+  },
+  "key_findings": [
+    "TrustGuard blocks 63.4% of ground-truth anomalous invocations and prevents 71.8% of taint-verified exfiltration flows at 2.1% FRR (within the 2.5% budget).",
+    "vs. MAPPO-Lagrangian (B8): +5.1 AIPR / +5.8 EPR at equal constraint satisfaction — isolates the role-specialized architecture.",
+    "vs. constrained single agent (B7): +13.6 AIPR at essentially the same FRR — the properly controlled multi-agent comparison.",
+    "For every FRR-constrained method FIR sits roughly 2x its FRR; FRR alone understates the false-intervention burden roughly twofold."
+  ]
+}

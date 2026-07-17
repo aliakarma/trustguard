@@ -1,0 +1,39 @@
+{
+  "description": "Hyperparameter sensitivity analyses as reported in the paper appendix (tab:tau, tab:lambda, tab:modality, EMA-alpha prose). Final paper values; seeds {7, 42, 123, 777, 2024}.",
+  "annotation_thresholds_tau": {
+    "description": "Task-1 AUROC under relabeled PermissionBench thresholds (tau_low, tau_high); std <= 0.004. Default: tau_low = 0.05, tau_high = 0.70.",
+    "results": {
+      "tau_low=0.02": {"tau_high=0.60": 0.958, "tau_high=0.70": 0.961, "tau_high=0.80": 0.957},
+      "tau_low=0.05": {"tau_high=0.60": 0.960, "tau_high=0.70": 0.963, "tau_high=0.80": 0.959},
+      "tau_low=0.10": {"tau_high=0.60": 0.957, "tau_high=0.70": 0.966, "tau_high=0.80": 0.955}
+    }
+  },
+  "reward_weights_lambda": {
+    "description": "AIPR% / FRR% under varying (lambda1, lambda2), lambda3 = 1.0 fixed. Default: lambda1 = 10, lambda2 = 0.1.",
+    "results": {
+      "lambda1=5":  {"lambda2=0.05": {"AIPR_pct": 66.8, "FRR_pct": 3.8}, "lambda2=0.1": {"AIPR_pct": 65.9, "FRR_pct": 3.6}, "lambda2=0.2": {"AIPR_pct": 63.1, "FRR_pct": 3.3}},
+      "lambda1=10": {"lambda2=0.05": {"AIPR_pct": 64.7, "FRR_pct": 2.3}, "lambda2=0.1": {"AIPR_pct": 63.4, "FRR_pct": 2.1}, "lambda2=0.2": {"AIPR_pct": 60.8, "FRR_pct": 1.9}},
+      "lambda1=20": {"lambda2=0.05": {"AIPR_pct": 59.2, "FRR_pct": 1.2}, "lambda2=0.1": {"AIPR_pct": 57.6, "FRR_pct": 1.0}, "lambda2=0.2": {"AIPR_pct": 54.9, "FRR_pct": 0.9}}
+    },
+    "note": "At lambda1 = 5 the policy settles at 3.6% FRR despite an active dual: with a fixed step size the integral-only dual update grows too slowly within the training budget to compensate for weak shaping (PID-Lagrangian dual control is the standard remedy). The honest attribution is constraint-plus-shaping, not the dual alone."
+  },
+  "encoder_modalities": {
+    "description": "Task-1 AUROC by encoder modality (std <= 0.005). T = text (BERT), C = code (CodeBERT), G = graph (GAT).",
+    "results": {
+      "T only": 0.921, "C only": 0.928, "G only": 0.911,
+      "T+C": 0.949, "T+G": 0.940, "C+G": 0.944,
+      "T+C+G (full)": 0.963
+    },
+    "note": "The descriptions-removed-for-all-records control reaches 0.944 AUROC, capping any description-presence shortcut contribution at 1.9 points."
+  },
+  "ema_alpha": {
+    "description": "EMA smoothing sensitivity: alpha in {0.1, 0.3, 0.5, 0.7}. Default alpha = 0.3. std <= 1.3 (PRR), 0.3 (FRR), 0.2 (latency).",
+    "results": {
+      "alpha=0.1": {"PRR_pct": 38.4, "FRR_pct": 1.9, "median_latency_s": 2.6},
+      "alpha=0.3": {"PRR_pct": 41.3, "FRR_pct": 2.1, "median_latency_s": 1.9},
+      "alpha=0.5": {"PRR_pct": 41.8, "FRR_pct": 2.3, "median_latency_s": 1.8},
+      "alpha=0.7": {"PRR_pct": 40.1, "FRR_pct": 2.5, "median_latency_s": 1.7}
+    },
+    "note": "Budget feasibility maintained across all tested alpha values."
+  }
+}

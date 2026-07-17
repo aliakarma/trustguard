@@ -1,0 +1,25 @@
+{
+  "description": "Temporal hold-out following the TESSERACT temporally consistent protocol: train on 2012-2018 records (~53,000), test on 2019-2021 records (~23,350), no post-2018 fine-tuning (paper tab:temporal). mean +/- std over seeds {7, 42, 123, 777, 2024}. AIPR/FRR only defined for runtime-capable methods.",
+  "protocol": {
+    "train_years": [2012, 2018],
+    "test_years": [2019, 2021],
+    "train_records_approx": 53000,
+    "test_records_approx": 23350,
+    "notes": "One split ending 2021; Android 12-14 changes and post-2021 malware outside its reach. Drift-aware detectors not run in adaptive mode. MaskDroid temporal behavior not evaluated."
+  },
+  "results": {
+    "DREBIN":            {"auroc": 0.846, "auroc_std": 0.005, "AIPR_pct": null, "FRR_pct": null},
+    "MaMaDroid":         {"auroc": 0.867, "auroc_std": 0.005, "AIPR_pct": null, "FRR_pct": null},
+    "DexRay":            {"auroc": 0.905, "auroc_std": 0.004, "AIPR_pct": null, "FRR_pct": null},
+    "Rule Threshold":    {"auroc": 0.882, "auroc_std": 0.004, "AIPR_pct": 32.8, "AIPR_std": 2.3, "FRR_pct": 13.9, "FRR_std": 1.0},
+    "Single-Agent RL":   {"auroc": 0.918, "auroc_std": 0.004, "AIPR_pct": 43.1, "AIPR_std": 2.0, "FRR_pct": 8.1,  "FRR_std": 0.6},
+    "SA PPO-Lagrangian": {"auroc": 0.916, "auroc_std": 0.004, "AIPR_pct": 41.9, "AIPR_std": 1.9, "FRR_pct": 2.9,  "FRR_std": 0.4},
+    "MAPPO-Lagrangian":  {"auroc": 0.931, "auroc_std": 0.004, "AIPR_pct": 50.6, "AIPR_std": 1.9, "FRR_pct": 2.8,  "FRR_std": 0.4},
+    "TrustGuard (ours)": {"auroc": 0.941, "auroc_std": 0.004, "AIPR_pct": 55.2, "AIPR_std": 1.8, "FRR_pct": 2.6,  "FRR_std": 0.4}
+  },
+  "key_findings": [
+    "TrustGuard's AUROC falls 2.2 points across the gap (0.963 -> 0.941), the smallest degradation among evaluated methods.",
+    "DexRay, statistically tied with TrustGuard on the full set, degrades 5.6 points (0.961 -> 0.905).",
+    "TrustGuard retains the highest enforcement coverage under the shift (55.2% AIPR at 2.6% FRR)."
+  ]
+}

@@ -8,9 +8,6 @@
 [![Tests](https://img.shields.io/badge/tests-pytest-green.svg)](tests/)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
-> Official implementation of the TrustGuard paper.  
-> *Akarma, A., Jan, S., & Syed, T. A. (2026). TrustGuard: A Multi-Agent Reinforcement Learning Framework for Autonomous Permission Governance in Mobile Ecosystems.*
-
 ---
 
 ## Overview
@@ -346,10 +343,3 @@ Each record contains: app ID, category, description, declared permissions, API c
 ## License
 
 This project is released under the [MIT License](LICENSE).
-
----
-
-## Contact
-
-**Ali Akarma** — 443059463@stu.iu.edu.sa  
-Islamic University of Madinah, Department of Information Technology

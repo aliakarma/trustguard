@@ -1,15 +1,15 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 
 interface GaugeChartProps {
-  value: number;        // Current value (e.g. 0.021 for 2.1%)
-  max: number;          // Max range (e.g. 0.05 for 5%)
-  threshold: number;    // Budget threshold (e.g. 0.025 for 2.5%)
-  titleKey: string;     // Title label key
-  decimals?: number;    // Display decimal places
-  suffix?: string;      // Display suffix (e.g. '%')
-  size?: number;        // Diameter in pixels
+  value: number;        // e.g. 0.021 for 2.1%
+  max: number;          // e.g. 0.05
+  threshold: number;    // e.g. 0.025
+  titleKey: string;
+  decimals?: number;
+  suffix?: string;
+  size?: number;
 }
 
 export default function GaugeChart({
@@ -19,93 +19,121 @@ export default function GaugeChart({
   titleKey,
   decimals = 2,
   suffix = '%',
-  size = 180,
+  size = 200,
 }: GaugeChartProps) {
-  const radius = size / 2 - 10;
+  const stroke = 13;
+  const radius = size / 2 - stroke;
   const circumference = 2 * Math.PI * radius;
-
-  // Render arc from 0 to 270 degrees (leaving bottom open)
   const angleRange = 270;
-  const startAngle = -135; // centered at top
+  const startAngle = -135;
 
-  // Calculate percentage of value within the max range
   const pct = Math.min(Math.max(value / max, 0), 1);
   const thresholdPct = Math.min(Math.max(threshold / max, 0), 1);
+  const arcFraction = angleRange / 360;
 
-  // Dash offsets for SVG strokes
-  const strokeDashoffset = circumference - (pct * (angleRange / 360)) * circumference;
-  const backgroundOffset = circumference - (angleRange / 360) * circumference;
+  const [animPct, setAnimPct] = useState(0);
+  useEffect(() => {
+    const id = requestAnimationFrame(() => setAnimPct(pct));
+    return () => cancelAnimationFrame(id);
+  }, [pct]);
 
-  // Threshold markers
+  const valueOffset = circumference - animPct * arcFraction * circumference;
+  const backgroundOffset = circumference - arcFraction * circumference;
+
+  // threshold notch position (at outer edge of arc)
   const thresholdAngle = startAngle + thresholdPct * angleRange;
-  const thresholdRad = (thresholdAngle * Math.PI) / 180;
-  const thresholdX = size / 2 + (radius + 8) * Math.cos(thresholdRad);
-  const thresholdY = size / 2 + (radius + 8) * Math.sin(thresholdRad);
+  const thRad = (thresholdAngle * Math.PI) / 180;
+  const cx = size / 2;
+  const cy = size / 2;
+  const nx1 = cx + (radius - stroke) * Math.cos(thRad);
+  const ny1 = cy + (radius - stroke) * Math.sin(thRad);
+  const nx2 = cx + (radius + stroke) * Math.cos(thRad);
+  const ny2 = cy + (radius + stroke) * Math.sin(thRad);
 
   const isExceeded = value > threshold;
-  const strokeColor = isExceeded ? 'var(--accent-danger)' : 'var(--accent-safe)';
-  const glowStyle = isExceeded ? { filter: 'drop-shadow(0px 0px 8px rgba(239, 68, 68, 0.4))' } : { filter: 'drop-shadow(0px 0px 8px rgba(16, 185, 129, 0.4))' };
+  const gradId = `gauge-grad-${isExceeded ? 'danger' : 'safe'}`;
+  const c1 = isExceeded ? '#FB7185' : '#34D399';
+  const c2 = isExceeded ? '#EF4444' : '#10B981';
 
   return (
-    <div className="flex flex-col items-center p-4 glass-panel accent-top--constraint">
-      <h3 className="stat-label text-center mb-4">{titleKey}</h3>
+    <div className="glass-panel accent-top--constraint p-6 flex flex-col items-center h-full justify-center">
+      <div className="flex items-center gap-2 mb-1 self-stretch justify-center">
+        <span className="stat-label text-center">{titleKey}</span>
+      </div>
+
       <div className="relative" style={{ width: size, height: size }}>
-        <svg width={size} height={size}>
-          {/* Background Arc */}
+        <svg width={size} height={size} className="overflow-visible">
+          <defs>
+            <linearGradient id={gradId} x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor={c1} />
+              <stop offset="100%" stopColor={c2} />
+            </linearGradient>
+          </defs>
+
+          {/* Track */}
           <circle
-            cx={size / 2}
-            cy={size / 2}
+            cx={cx}
+            cy={cy}
             r={radius}
             fill="none"
             stroke="var(--border-subtle)"
-            strokeWidth="10"
+            strokeWidth={stroke}
             strokeDasharray={circumference}
             strokeDashoffset={backgroundOffset}
             strokeLinecap="round"
-            transform={`rotate(${startAngle} ${size / 2} ${size / 2})`}
+            transform={`rotate(${startAngle} ${cx} ${cy})`}
           />
-          {/* Value Arc */}
+
+          {/* Value arc */}
           <circle
-            cx={size / 2}
-            cy={size / 2}
+            cx={cx}
+            cy={cy}
             r={radius}
             fill="none"
-            stroke={strokeColor}
-            strokeWidth="12"
+            stroke={`url(#${gradId})`}
+            strokeWidth={stroke}
             strokeDasharray={circumference}
-            strokeDashoffset={strokeDashoffset}
+            strokeDashoffset={valueOffset}
             strokeLinecap="round"
-            style={glowStyle}
-            transform={`rotate(${startAngle} ${size / 2} ${size / 2})`}
+            transform={`rotate(${startAngle} ${cx} ${cy})`}
+            style={{
+              transition: 'stroke-dashoffset 1s cubic-bezier(0.16,1,0.3,1)',
+              filter: `drop-shadow(0 0 7px ${isExceeded ? 'rgba(239,68,68,0.45)' : 'rgba(16,185,129,0.4)'})`,
+            }}
+          />
+
+          {/* Threshold notch */}
+          <line
+            x1={nx1}
+            y1={ny1}
+            x2={nx2}
+            y2={ny2}
+            stroke="var(--accent-constraint)"
+            strokeWidth={2.5}
+            strokeLinecap="round"
           />
         </svg>
 
-        {/* Threshold Indicator Pin */}
-        <div
-          className="absolute w-2 h-2 rounded-full bg-purple-400"
-          style={{
-            left: thresholdX - 4,
-            top: thresholdY - 4,
-            boxShadow: '0 0 8px var(--accent-constraint)',
-          }}
-          title={`Budget Threshold: ${(threshold * 100).toFixed(decimals)}${suffix}`}
-        />
-
-        {/* Center Text Value */}
+        {/* Center */}
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span className="stat-value text-3xl">
+          <span className="stat-value" style={{ fontSize: '2.1rem' }}>
             {(value * 100).toFixed(decimals)}
-            <span className="text-base font-normal ml-0.5">{suffix}</span>
+            <span className="text-base font-medium text-secondary ml-0.5">{suffix}</span>
           </span>
-          <span className="text-tertiary text-xs mt-1">
-            {isExceeded ? 'Exceeded ✗' : 'Within Budget ✓'}
+          <span
+            className={`badge mt-2 ${isExceeded ? 'badge--danger' : 'badge--safe'}`}
+          >
+            {isExceeded ? 'Exceeded' : 'Within budget'}
           </span>
         </div>
       </div>
 
-      <div className="flex justify-between w-full mt-4 text-xs text-tertiary px-2">
+      <div className="flex justify-between w-full mt-5 text-xs text-tertiary text-mono px-1">
         <span>0{suffix}</span>
-        <span>Limit: {(threshold * 100).toFixed(decimals)}{suffix}</span>
+        <span className="flex items-center gap-1">
+          <span className="inline-block h-2 w-0.5 rounded" style={{ background: 'var(--accent-constraint)' }} />
+          budget {(threshold * 100).toFixed(decimals)}{suffix}
+        </span>
         <span>{(max * 100).toFixed(decimals)}{suffix}</span>
       </div>
     </div>

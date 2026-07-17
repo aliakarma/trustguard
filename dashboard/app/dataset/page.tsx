@@ -45,11 +45,11 @@ export default function DatasetExplorer() {
             <div className="flex flex-col gap-2 mt-4 pt-4 border-t border-subtle">
               <div className="flex justify-between text-xs">
                 <span className="text-tertiary">Benign Apps</span>
-                <span className="font-mono text-emerald-400 font-semibold">{s.benign.toLocaleString()}</span>
+                <span className="font-mono text-safe font-semibold">{s.benign.toLocaleString()}</span>
               </div>
               <div className="flex justify-between text-xs">
                 <span className="text-tertiary">Malicious Apps</span>
-                <span className="font-mono text-red-400 font-semibold">{s.malicious.toLocaleString()}</span>
+                <span className="font-mono text-danger font-semibold">{s.malicious.toLocaleString()}</span>
               </div>
             </div>
           </GlassPanel>
@@ -62,7 +62,7 @@ export default function DatasetExplorer() {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-2">
           {/* Phase 1 */}
-          <div className="bg-secondary/40 border border-subtle p-4 rounded-xl flex flex-col justify-between">
+          <div className="bg-surface/40 border border-subtle p-4 rounded-xl flex flex-col justify-between">
             <div>
               <span className="text-[10px] font-bold text-monitor uppercase tracking-wider">Phase 1: Seed Predictor</span>
               <h4 className="text-xs font-bold text-primary mt-1 mb-2">gθ⁽⁰⁾ Bootstrap</h4>
@@ -73,9 +73,9 @@ export default function DatasetExplorer() {
           </div>
 
           {/* Phase 2 */}
-          <div className="bg-secondary/40 border border-subtle p-4 rounded-xl flex flex-col justify-between">
+          <div className="bg-surface/40 border border-subtle p-4 rounded-xl flex flex-col justify-between">
             <div>
-              <span className="text-[10px] font-bold text-accent-risk uppercase tracking-wider" style={{ color: 'var(--accent-risk)' }}>Phase 2: Confident Labeling</span>
+              <span className="text-[10px] font-bold text-risk uppercase tracking-wider" style={{ color: 'var(--accent-risk)' }}>Phase 2: Confident Labeling</span>
               <h4 className="text-xs font-bold text-primary mt-1 mb-2">Category Filtering</h4>
               <p className="text-secondary text-[11px] leading-relaxed">
                 Labels resolved by score thresholds: Legitimate if <KaTeXBlock math="g_\theta > 0.70" />, Anomalous if <KaTeXBlock math="g_\theta < 0.05" />.
@@ -84,9 +84,9 @@ export default function DatasetExplorer() {
           </div>
 
           {/* Fallback */}
-          <div className="bg-secondary/40 border border-subtle p-4 rounded-xl flex flex-col justify-between">
+          <div className="bg-surface/40 border border-subtle p-4 rounded-xl flex flex-col justify-between">
             <div>
-              <span className="text-[10px] font-bold text-red-400 uppercase tracking-wider">TaintDroid Override</span>
+              <span className="text-[10px] font-bold text-danger uppercase tracking-wider">TaintDroid Override</span>
               <h4 className="text-xs font-bold text-primary mt-1 mb-2">Ground Truth Alignment</h4>
               <p className="text-secondary text-[11px] leading-relaxed">
                 Any (app, permission) pair flagged by TaintDroid as transmitting to unauthorized endpoints is overrides-forced to Anomalous. Remaining ambiguous labels (8%) manually adjudicated.
@@ -105,25 +105,30 @@ export default function DatasetExplorer() {
 
         <div className="flex flex-col lg:flex-row gap-6">
           {/* Category List */}
-          <div className="lg:w-64 max-h-[300px] overflow-y-auto border border-subtle rounded-xl p-2 bg-secondary/20 flex flex-col gap-1">
+          <div className="lg:w-64 max-h-[300px] overflow-y-auto border border-subtle rounded-xl p-2 bg-surface/20 flex flex-col gap-1">
             {APP_CATEGORIES.slice(0, 15).map((cat) => (
               <button
                 key={cat}
                 type="button"
                 onClick={() => setSelectedCategory(cat)}
-                className={`text-xs text-left px-3 py-2 rounded-lg transition-all ${
+                className={`text-xs text-start px-3 py-2 rounded-lg transition-all flex items-center gap-2 ${
                   selectedCategory === cat
-                    ? 'bg-monitor text-white font-bold'
-                    : 'text-secondary hover:bg-secondary'
+                    ? 'bg-monitor/15 text-monitor font-semibold'
+                    : 'text-secondary hover:bg-surface hover:text-primary'
                 }`}
               >
+                <span
+                  className={`h-1.5 w-1.5 rounded-full flex-shrink-0 transition-colors ${
+                    selectedCategory === cat ? 'bg-monitor' : 'bg-transparent'
+                  }`}
+                />
                 {cat}
               </button>
             ))}
           </div>
 
           {/* Details Panel */}
-          <div className="flex-1 bg-secondary/40 border border-subtle p-5 rounded-xl flex flex-col justify-between">
+          <div className="flex-1 bg-surface/40 border border-subtle p-5 rounded-xl flex flex-col justify-between">
             <div>
               <h4 className="text-sm font-bold text-primary mb-3">Category Metadata Profile: {selectedCategory}</h4>
               <div className="grid grid-2 gap-4 text-xs">

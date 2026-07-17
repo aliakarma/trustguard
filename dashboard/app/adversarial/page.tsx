@@ -5,6 +5,7 @@ import { useGlobalStore } from '@/stores/globalStore';
 import GlassPanel from '@/components/common/GlassPanel';
 import KaTeXBlock from '@/components/common/KaTeXBlock';
 import { useTranslations } from 'next-intl';
+import { ShieldAlert } from 'lucide-react';
 
 export default function AdversarialLab() {
   const { setActivePage } = useGlobalStore();
@@ -62,7 +63,7 @@ export default function AdversarialLab() {
             <select
               value={attackType}
               onChange={(e: any) => setAttackType(e.target.value)}
-              className="bg-secondary/40 border border-subtle rounded-lg p-2 text-xs focus:outline-none focus:border-monitor text-primary"
+              className="field text-xs text-primary"
             >
               <option value="none" className="bg-slate-900">None (Clean Environment)</option>
               <option value="mm" className="bg-slate-900">Manifest Mimicry (MM)</option>
@@ -84,7 +85,7 @@ export default function AdversarialLab() {
                 step={1}
                 value={mmIntensity}
                 onChange={(e) => setMmIntensity(parseInt(e.target.value))}
-                className="w-full h-1 bg-border-subtle rounded-lg appearance-none cursor-pointer accent-monitor"
+                className="w-full"
               />
             </div>
           )}
@@ -96,7 +97,7 @@ export default function AdversarialLab() {
               <select
                 value={rtmaShim}
                 onChange={(e) => setRtmaShim(e.target.value)}
-                className="bg-secondary/40 border border-subtle rounded-lg p-2 text-xs focus:outline-none focus:border-monitor text-primary"
+                className="field text-xs text-primary"
               >
                 <option value="benign-matched" className="bg-slate-900">Benign category timing matched</option>
                 <option value="random" className="bg-slate-900">Random delay distribution</option>
@@ -118,7 +119,7 @@ export default function AdversarialLab() {
             <select
               value={prevalence}
               onChange={(e) => setPrevalence(parseFloat(e.target.value))}
-              className="bg-secondary/40 border border-subtle rounded-lg p-2 text-xs focus:outline-none focus:border-monitor text-primary"
+              className="field text-xs text-primary"
             >
               <option value="28.6" className="bg-slate-900">28.6% (AASE Training Baseline)</option>
               <option value="2" className="bg-slate-900">2.0% Low Prevalence Stress</option>
@@ -144,36 +145,52 @@ export default function AdversarialLab() {
       <div className="xl:col-span-2 flex flex-col gap-6">
         {/* AUROC & Enforcement Stats Card */}
         <GlassPanel accentTop monitor className="p-6">
-          <h3 className="stat-label mb-4">Adversarial Performance Output</h3>
+          <div className="flex items-center justify-between gap-2 mb-5">
+            <h3 className="stat-label">Adversarial Performance Output</h3>
+            <span className={`badge ${attackType === 'none' ? 'badge--safe' : 'badge--danger'}`}>
+              {attackType === 'none' ? 'Clean environment' : 'Under attack'}
+            </span>
+          </div>
 
-          <div className="grid grid-2 gap-6 mb-6">
-            <div className="flex flex-col gap-1">
-              <span className="text-[10px] text-tertiary uppercase">Robustness Classifier AUROC</span>
-              <span className="text-3xl font-mono font-bold text-primary">{activeAuroc.toFixed(3)}</span>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
+            <div className="bg-surface/50 border border-subtle rounded-xl p-4 flex flex-col gap-2">
+              <span className="eyebrow">Robustness AUROC</span>
+              <div className="flex items-baseline gap-2">
+                <span className="stat-value" style={{ fontSize: '2rem' }}>{activeAuroc.toFixed(3)}</span>
+                {attackType !== 'none' && (
+                  <span className="text-xs text-mono text-danger font-semibold">−{(0.963 - activeAuroc).toFixed(3)}</span>
+                )}
+              </div>
+              <div className="h-1.5 bg-surface rounded-full overflow-hidden mt-1">
+                <div className="h-full rounded-full transition-all duration-700" style={{ width: `${activeAuroc * 100}%`, background: 'linear-gradient(90deg,#38BDF8,#6366F1)' }} />
+              </div>
+              <span className="text-[10px] text-tertiary">clean baseline 0.963</span>
             </div>
-            <div className="flex flex-col gap-1">
-              <span className="text-[10px] text-tertiary uppercase">Safety Budget Constraint</span>
-              <span className={`text-3xl font-mono font-bold ${activeFrr > 2.5 ? 'text-red-400' : 'text-emerald-400'}`}>
-                {activeFrr.toFixed(2)}%
-                <span className="text-xs font-normal text-tertiary ml-2">FRR</span>
-              </span>
+
+            <div className="bg-surface/50 border border-subtle rounded-xl p-4 flex flex-col gap-2">
+              <span className="eyebrow">Safety budget · FRR</span>
+              <div className="flex items-baseline gap-2">
+                <span className="stat-value" style={{ fontSize: '2rem', color: activeFrr > 2.5 ? 'var(--accent-danger)' : 'var(--accent-safe)' }}>
+                  {activeFrr.toFixed(2)}%
+                </span>
+                <span className={`badge ${activeFrr > 2.5 ? 'badge--danger' : 'badge--safe'}`}>{activeFrr > 2.5 ? 'Exceeded' : 'Within budget'}</span>
+              </div>
+              <div className="h-1.5 bg-surface rounded-full overflow-hidden mt-1 relative">
+                <div className="absolute top-0 bottom-0 w-px bg-constraint" style={{ left: `${(2.5 / 5) * 100}%` }} />
+                <div className="h-full rounded-full transition-all duration-700" style={{ width: `${Math.min((activeFrr / 5) * 100, 100)}%`, background: activeFrr > 2.5 ? 'var(--accent-danger)' : 'var(--accent-safe)' }} />
+              </div>
+              <span className="text-[10px] text-tertiary">budget ε_safe = 2.5%</span>
             </div>
           </div>
 
-          <div className="flex flex-col gap-1 border-t border-subtle pt-4 text-xs text-secondary leading-relaxed">
-            <strong>Adversarial Insight:</strong>
-            {attackType === 'none' && (
-              <span>Clean environment metrics reflect the standard training split outcomes reported in paper tables.</span>
-            )}
-            {attackType === 'mm' && (
-              <span>Manifest Mimicry inserts low-risk declared permissions. Clean GATv2/CodeBERT classifiers remain largely insulated. Classifier AUROC falls by {(0.072 * (mmIntensity / 5)).toFixed(3)} points.</span>
-            )}
-            {attackType === 'rtma' && (
-              <span>Runtime Trace Mimicry delays API arrival distributions. Because TrustGuard uses windowed counts and timing parameters, RTMA directly targets the temporal observation sequence, causing a 11.6 point AUROC degradation.</span>
-            )}
-            {attackType === 'composed' && (
-              <span>Composed attack applies both MM and RTMA timing shims to the APK, causing the AUROC bounds to invert relative to pure static methods.</span>
-            )}
+          <div className="flex items-start gap-2.5 border-t border-subtle pt-4 text-xs text-secondary leading-relaxed">
+            <ShieldAlert size={15} className="text-monitor mt-0.5 flex-shrink-0" />
+            <span>
+              {attackType === 'none' && 'Clean-environment metrics reflect the standard training split outcomes reported in the paper tables.'}
+              {attackType === 'mm' && `Manifest Mimicry inserts low-risk declared permissions. Clean GATv2 / CodeBERT classifiers remain largely insulated — classifier AUROC falls by only ${(0.072 * (mmIntensity / 5)).toFixed(3)} points.`}
+              {attackType === 'rtma' && 'Runtime Trace Mimicry delays API arrival distributions. Because TrustGuard uses windowed counts and timing parameters, RTMA directly targets the temporal observation sequence — an 11.6 point AUROC degradation.'}
+              {attackType === 'composed' && 'The composed attack applies both MM and RTMA timing shims to the APK, causing the AUROC bounds to invert relative to pure static methods.'}
+            </span>
           </div>
         </GlassPanel>
 
@@ -190,11 +207,11 @@ export default function AdversarialLab() {
               </div>
               <div className="flex justify-between border-b border-subtle pb-1">
                 <span className="text-tertiary">Timing profile</span>
-                <span className="text-emerald-400">Regular burst counts</span>
+                <span className="text-safe">Regular burst counts</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-tertiary">Governance Action</span>
-                <span className="text-emerald-400 font-semibold font-mono">no_op</span>
+                <span className="text-safe font-semibold font-mono">no_op</span>
               </div>
             </div>
           </GlassPanel>
@@ -214,7 +231,7 @@ export default function AdversarialLab() {
               </div>
               <div className="flex justify-between border-b border-subtle pb-1">
                 <span className="text-tertiary">Timing profile</span>
-                <span className={attackType === 'rtma' || attackType === 'composed' ? 'text-red-400 font-bold' : 'text-emerald-400'}>
+                <span className={attackType === 'rtma' || attackType === 'composed' ? 'text-danger font-bold' : 'text-safe'}>
                   {attackType === 'rtma' || attackType === 'composed'
                     ? 'RTMA delayed timing shim'
                     : 'Regular burst counts'}
@@ -222,7 +239,7 @@ export default function AdversarialLab() {
               </div>
               <div className="flex justify-between">
                 <span className="text-tertiary">Governance Action</span>
-                <span className="text-red-400 font-semibold font-mono">
+                <span className="text-danger font-semibold font-mono">
                   {attackType === 'rtma' || attackType === 'composed'
                     ? 'enforce_delay (delayed alerts)'
                     : 'no_op'}

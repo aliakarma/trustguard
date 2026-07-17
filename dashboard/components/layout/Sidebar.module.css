@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════════════════
-   Sidebar Component Styles
+   Sidebar
    ═══════════════════════════════════════════════════════════════════════════ */
 
 .sidebar {
@@ -9,58 +9,56 @@
   inline-size: var(--sidebar-width);
   block-size: 100vh;
   background: var(--bg-panel);
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
   border-inline-end: 1px solid var(--border-subtle);
   z-index: var(--z-sidebar);
   display: flex;
   flex-direction: column;
   transition: inline-size var(--transition-normal);
-  overflow-y: auto;
-  overflow-x: hidden;
+  overflow: hidden;
 }
 
-.collapsed {
-  inline-size: var(--sidebar-collapsed);
-}
+.collapsed { inline-size: var(--sidebar-collapsed); }
 
 /* ── Brand ────────────────────────────────────────────────────────────────── */
 .brand {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 1.25rem 1rem;
+  gap: 0.7rem;
+  padding: 1.1rem 1.15rem;
+  min-block-size: var(--header-height);
   border-block-end: 1px solid var(--border-subtle);
-  min-block-size: 64px;
 }
+.collapsed .brand { justify-content: center; padding-inline: 0; }
 
 .logo {
-  font-size: 1.5rem;
   flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  inline-size: 40px;
-  block-size: 40px;
+  inline-size: 36px;
+  block-size: 36px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(145deg, #38BDF8 0%, #6366F1 55%, #A78BFA 100%);
+  box-shadow: 0 4px 14px -4px rgba(56, 189, 248, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  color: #fff;
 }
+.logo svg { inline-size: 20px; block-size: 20px; }
 
-.brandText {
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  white-space: nowrap;
-}
-
+.brandText { display: flex; flex-direction: column; overflow: hidden; white-space: nowrap; line-height: 1.1; }
 .brandName {
-  font-size: 1.125rem;
+  font-size: 1.02rem;
   font-weight: 700;
+  letter-spacing: -0.02em;
   color: var(--text-primary);
-  letter-spacing: -0.01em;
 }
-
 .brandSub {
-  font-size: 0.6875rem;
+  font-size: 0.62rem;
   color: var(--text-tertiary);
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.14em;
+  font-weight: 600;
+  margin-top: 1px;
 }
 
 /* ── Navigation ───────────────────────────────────────────────────────────── */
@@ -68,87 +66,106 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  padding: 0.75rem 0.5rem;
+  gap: 1px;
+  padding: 0.85rem 0.7rem 1rem;
   overflow-y: auto;
+  overflow-x: hidden;
+}
+.collapsed .nav { padding-inline: 0.6rem; align-items: center; }
+
+.sectionLabel {
+  font-size: 0.6rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--text-tertiary);
+  padding: 0.9rem 0.65rem 0.35rem;
+  white-space: nowrap;
 }
 
 .navItem {
   position: relative;
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 0.625rem 0.75rem;
-  border-radius: var(--border-radius-md);
+  gap: 0.7rem;
+  padding: 0.55rem 0.65rem;
+  border-radius: var(--radius-sm);
   color: var(--text-secondary);
-  font-size: 0.875rem;
-  font-weight: 450;
+  font-size: 0.85rem;
+  font-weight: 500;
   text-decoration: none;
-  transition: all var(--transition-fast);
+  transition: background var(--transition-fast), color var(--transition-fast);
   white-space: nowrap;
   overflow: hidden;
 }
+.collapsed .navItem { justify-content: center; inline-size: 44px; block-size: 44px; padding: 0; }
 
-.navItem:hover {
-  background: var(--surface-glass);
-  color: var(--text-primary);
-}
+.navItem:hover { background: var(--surface-2); color: var(--text-primary); }
 
 .navItem.active {
-  background: var(--surface-glass-hover);
+  background: var(--accent-monitor-dim);
   color: var(--text-primary);
-  font-weight: 550;
+  font-weight: 600;
 }
+.navItem.active .navIcon { color: var(--accent-monitor); opacity: 1; }
 
-.navIcon {
-  flex-shrink: 0;
-  opacity: 0.7;
-}
+.navIcon { flex-shrink: 0; opacity: 0.72; transition: opacity var(--transition-fast), color var(--transition-fast); }
+.navItem:hover .navIcon { opacity: 1; }
 
-.navItem:hover .navIcon,
-.navItem.active .navIcon {
-  opacity: 1;
-}
-
-.navLabel {
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
+.navLabel { overflow: hidden; text-overflow: ellipsis; }
 
 .activeIndicator {
   position: absolute;
-  inset-inline-start: 0;
+  inset-inline-start: -0.7rem;
   inset-block-start: 50%;
   transform: translateY(-50%);
   inline-size: 3px;
-  block-size: 24px;
+  block-size: 20px;
   background: var(--accent-monitor);
-  border-radius: 0 4px 4px 0;
+  border-radius: 0 3px 3px 0;
+  box-shadow: 0 0 10px var(--accent-monitor);
 }
+.collapsed .activeIndicator { inset-inline-start: 0; }
 
-/* ── Bottom Controls ──────────────────────────────────────────────────────── */
+/* ── Bottom controls ──────────────────────────────────────────────────────── */
 .bottomControls {
   display: flex;
   flex-direction: column;
   gap: 2px;
-  padding: 0.75rem 0.5rem;
+  padding: 0.7rem;
   border-block-start: 1px solid var(--border-subtle);
 }
+.collapsed .bottomControls { align-items: center; }
 
 .controlBtn {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 0.5rem 0.75rem;
-  border-radius: var(--border-radius-sm);
-  color: var(--text-tertiary);
-  font-size: 0.8125rem;
-  transition: all var(--transition-fast);
+  gap: 0.7rem;
+  padding: 0.5rem 0.65rem;
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  font-weight: 500;
+  transition: background var(--transition-fast), color var(--transition-fast);
   white-space: nowrap;
   overflow: hidden;
+  width: 100%;
 }
+.collapsed .controlBtn { justify-content: center; inline-size: 44px; block-size: 44px; padding: 0; }
+.controlBtn:hover { background: var(--surface-2); color: var(--text-primary); }
+.controlBtn svg { flex-shrink: 0; }
 
-.controlBtn:hover {
-  background: var(--surface-glass);
-  color: var(--text-primary);
+/* ── Force the icon rail on narrow screens (matches main-area margin) ──────── */
+@media (max-width: 900px) {
+  .sidebar { inline-size: var(--sidebar-collapsed); }
+  .brand { justify-content: center; padding-inline: 0; }
+  .brandText { display: none; }
+  .nav { padding-inline: 0.6rem; align-items: center; }
+  .sectionLabel { display: none; }
+  .navItem { justify-content: center; inline-size: 44px; block-size: 44px; padding: 0; }
+  .navLabel { display: none; }
+  .activeIndicator { inset-inline-start: 0; }
+  .bottomControls { align-items: center; }
+  .controlBtn { justify-content: center; inline-size: 44px; block-size: 44px; padding: 0; }
+  .controlBtn span { display: none; }
 }

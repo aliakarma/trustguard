@@ -1,34 +1,56 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# TrustGuard Dashboard
 
-## Getting Started
+Interactive research dashboard for the TrustGuard multi-agent permission-governance
+framework. Built with Next.js 16, React 19, and Tailwind v4.
 
-First, run the development server:
+## Architecture — two processes
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+The dashboard is a thin client. Static result pages (Command Center, Results,
+Sensitivity, Adversarial, Pilot, Dataset) read bundled JSON and work standalone.
+The **interactive** pages (Live Simulation, Training Monitor, Agent Inspector,
+Semantic Encoder) call a small Python inference backend over HTTP + WebSocket.
+
+```
+Next.js frontend  :3000   ──►   FastAPI backend  :8001
+(this folder)                   (../backend/main.py)
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+If the backend isn't running, the interactive pages show a clear
+"Backend unavailable" banner telling you how to start it.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Getting started
 
-## Learn More
+**1. Start the inference backend** (from the repo root, needs the `trustguard`
+Python env — torch, fastapi, uvicorn):
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+python backend/main.py           # serves http://127.0.0.1:8001
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+**2. Start the dashboard** (from this `dashboard/` folder):
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+npm install
+npm run dev                      # serves http://localhost:3000
+```
 
-## Deploy on Vercel
+Open http://localhost:3000.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Configuration
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+The backend URL can be overridden with environment variables (defaults shown):
+
+```
+NEXT_PUBLIC_API_BASE=http://localhost:8001
+NEXT_PUBLIC_WS_BASE=ws://localhost:8001
+```
+
+## Features
+
+- **Command Center** — headline enforcement metrics + cross-method comparison
+- **Live Simulation** — streams a live permission-governance episode (real `PermissionEnv`)
+- **Training Monitor** — live MAPPO-Lagrangian training curves
+- **Agent Inspector** — forward passes for the three cooperative policies
+- **Semantic Encoder** — fuse app metadata into ϕ(fᵢ) and predict per-permission risk
+- **Results / Adversarial / Sensitivity / Pilot / Dataset** — paper results explorers
+- **Theme + language** — light/dark and English/Arabic (full RTL), both persisted

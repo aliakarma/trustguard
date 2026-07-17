@@ -123,8 +123,14 @@ trustguard/
 │   └── run_all_seeds.sh         # Paper protocol: seeds {7, 42, 123, 777, 2024}
 ├── tests/                       # pytest test suite
 ├── docs/                        # Extended documentation (incl. reproducibility.md)
-└── notebooks/
-    └── trustguard_demo.ipynb
+├── notebooks/
+│   └── trustguard_demo.ipynb
+├── backend/                     # FastAPI inference server for the dashboard (:8001)
+│   └── main.py                  # /api/encode, /api/agent_forward, WS sim + training
+└── dashboard/                   # Next.js 16 research dashboard (:3000)
+    ├── app/                     # Pages: command center, simulation, training, ...
+    ├── components/              # Layout, charts, forms, data-display
+    └── stores/                  # Zustand global state (theme, locale, prefs)
 ```
 
 ---
@@ -292,6 +298,81 @@ Every paper table is mapped to its script and reference results file in
 
 ---
 
+## Interactive Dashboard
+
+A **Next.js research dashboard** ([`dashboard/`](dashboard/)) provides a visual,
+conference-demo front-end for TrustGuard — live enforcement episodes, training
+curves, per-agent forward passes, and the semantic encoder — plus static
+explorers for every paper result. It is built with Next.js 16, React 19, and
+Tailwind v4, and supports light/dark themes and English/Arabic (full RTL).
+
+### Two-process architecture
+
+The dashboard is a thin client. The **static** result pages (Command Center,
+Results, Sensitivity, Adversarial, Pilot, Dataset) read bundled JSON and work
+standalone. The **interactive** pages call a small Python inference backend
+([`backend/main.py`](backend/main.py)) over HTTP + WebSocket:
+
+```
+Next.js frontend  :3000   ──►   FastAPI backend  :8001
+(dashboard/)                    (backend/main.py — reuses the trustguard package)
+```
+
+If the backend isn't running, the interactive pages show a clear
+**"Backend unavailable"** banner telling you exactly how to start it — the rest
+of the dashboard keeps working.
+
+### Running it — two terminals
+
+**Terminal 1 — inference backend** (from the repo root, in the `trustguard`
+conda env so `torch` / `fastapi` / `uvicorn` are importable):
+
+```bash
+python backend/main.py            # serves http://127.0.0.1:8001
+```
+
+The first start takes ~10–20 s (it imports torch). Wait for the uvicorn
+"Application startup complete" line before using the interactive pages.
+
+**Terminal 2 — dashboard** (from the `dashboard/` folder, Node 18+):
+
+```bash
+cd dashboard
+npm install                       # first time only
+npm run dev                       # serves http://localhost:3000
+```
+
+Then open **http://localhost:3000**.
+
+### Configuration
+
+The backend URL is overridable via environment variables (defaults shown). Set
+them in `dashboard/.env.local` if the backend runs elsewhere:
+
+```
+NEXT_PUBLIC_API_BASE=http://localhost:8001
+NEXT_PUBLIC_WS_BASE=ws://localhost:8001
+```
+
+### Using the pages
+
+| Page | Backend? | What it does |
+|------|:--------:|--------------|
+| **Command Center** | — | Headline enforcement metrics + cross-method comparison |
+| **Results / Adversarial / Sensitivity / Pilot / Dataset** | — | Paper-result explorers (bundled JSON) |
+| **Live Simulation** | ✔ | Configure and stream a live permission-governance episode (real `PermissionEnv`) — risk grid, action tracks, event log |
+| **Training Monitor** | ✔ | Live MAPPO-Lagrangian training curves and checkpoints |
+| **Agent Inspector** | ✔ | Run forward passes for the Monitoring / Risk / Enforcement policies and inspect the action distribution |
+| **Semantic Encoder** | ✔ | Fuse app metadata into ϕ(fᵢ) and predict per-permission risk |
+
+Pages marked ✔ need Terminal 1 running. **Theme** (light/dark) and **language**
+(English / Arabic RTL) are toggled from the sidebar and persist across reloads.
+
+> More detail — including the feature list and env-var reference — is in
+> [`dashboard/README.md`](dashboard/README.md).
+
+---
+
 ## Running Tests
 
 ```bash
@@ -334,8 +415,6 @@ PermissionBench is the first large-scale benchmark for mobile permission risk an
 
 Each record contains: app ID, category, description, declared permissions, API call features, binary risk label, per-permission risk labels, and runtime permission traces.
 
-**Download**: [github.com/aliakarma/PermissionBench](https://github.com/aliakarma/PermissionBench)  
-**License**: CC-BY-4.0
 
 ---
 

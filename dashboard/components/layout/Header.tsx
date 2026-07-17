@@ -5,43 +5,31 @@ import styles from './Header.module.css';
 
 interface HeaderProps {
   title: string;
-  breadcrumb?: string[];
+  subtitle?: string;
 }
 
-export default function Header({ title, breadcrumb }: HeaderProps) {
+export default function Header({ title, subtitle }: HeaderProps) {
   const { wsConnected } = useGlobalStore();
 
   return (
     <header className={styles.header}>
-      {/* ── Breadcrumb / Title ──────────────────────────────────────── */}
       <div className={styles.titleArea}>
-        {breadcrumb && breadcrumb.length > 0 && (
-          <div className={styles.breadcrumb}>
-            <span className={styles.breadcrumbHome}>Home</span>
-            {breadcrumb.map((item, i) => (
-              <span key={i}>
-                <span className={styles.breadcrumbSep}>/</span>
-                <span className={styles.breadcrumbItem}>{item}</span>
-              </span>
-            ))}
-          </div>
-        )}
+        <span className={styles.eyebrow}>
+          <span className={styles.eyebrowDot} />
+          TrustGuard Dashboard
+        </span>
         <h1 className={styles.pageTitle}>{title}</h1>
+        {subtitle && <span className={styles.subtitle}>{subtitle}</span>}
       </div>
 
-      {/* ── Spacer ─────────────────────────────────────────────────── */}
       <div className={styles.spacer} />
 
-      {/* ── Connection Status ──────────────────────────────────────── */}
-      <div className={styles.connectionStatus}>
-        <div
-          className={`${styles.statusDot} ${
-            wsConnected ? styles.dotConnected : styles.dotDisconnected
-          }`}
-        />
-        <span className={styles.statusText}>
-          {wsConnected ? 'Connected' : 'Disconnected'}
-        </span>
+      <div className={styles.right}>
+        <span className={styles.envBadge}>MAPPO · Dec-POMDP</span>
+        <div className={styles.connectionStatus} title={wsConnected ? 'Live stream connected' : 'Live stream offline'}>
+          <div className={`${styles.statusDot} ${wsConnected ? styles.dotConnected : styles.dotDisconnected}`} />
+          <span className={styles.statusText}>{wsConnected ? 'Live' : 'Offline'}</span>
+        </div>
       </div>
     </header>
   );

@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Play, Square, Pause } from 'lucide-react';
+import { Play, Square, Pause, Loader2 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 
 interface RunButtonProps {
@@ -11,51 +11,46 @@ interface RunButtonProps {
   onStop?: () => void;
 }
 
-export default function RunButton({
-  status,
-  onClick,
-  onStop,
-}: RunButtonProps) {
+export default function RunButton({ status, onClick, onStop }: RunButtonProps) {
   const t = useTranslations('simulation');
 
   const isLoading = status === 'loading';
   const isRunning = status === 'running';
   const isPaused = status === 'paused';
-  const isIdle = status === 'idle';
+
+  const primaryStyle: React.CSSProperties = isRunning
+    ? { background: 'var(--accent-warning)', color: 'var(--on-warning)' }
+    : { background: 'var(--accent-safe)', color: 'var(--on-safe)' };
 
   return (
     <div className="flex gap-2 w-full">
       <motion.button
         type="button"
-        whileHover={{ scale: isLoading ? 1 : 1.02 }}
-        whileTap={{ scale: isLoading ? 1 : 0.98 }}
+        whileHover={{ scale: isLoading ? 1 : 1.015 }}
+        whileTap={{ scale: isLoading ? 1 : 0.985 }}
         onClick={isLoading ? undefined : onClick}
-        className={`btn flex-1 text-sm font-semibold flex items-center justify-center gap-2 py-3 rounded-xl border transition-all ${
-          isRunning
-            ? 'bg-amber-500 border-amber-600 hover:bg-amber-600 text-white'
-            : isPaused
-            ? 'bg-emerald-500 border-emerald-600 hover:bg-emerald-600 text-white'
-            : 'bg-emerald-500 border-emerald-600 hover:bg-emerald-600 text-white'
-        } ${isLoading ? 'opacity-70 cursor-not-allowed' : ''}`}
+        disabled={isLoading}
+        style={primaryStyle}
+        className={`btn btn--lg flex-1 ${isLoading ? 'opacity-70 cursor-wait' : ''}`}
       >
         {isLoading ? (
           <>
-            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-            <span>Connecting...</span>
+            <Loader2 size={17} className="animate-spin" />
+            <span>Connecting…</span>
           </>
         ) : isRunning ? (
           <>
-            <Pause size={16} />
+            <Pause size={17} fill="currentColor" />
             <span>{t('pause')}</span>
           </>
         ) : isPaused ? (
           <>
-            <Play size={16} />
+            <Play size={17} fill="currentColor" />
             <span>{t('resume')}</span>
           </>
         ) : (
           <>
-            <Play size={16} />
+            <Play size={17} fill="currentColor" />
             <span>{t('run')}</span>
           </>
         )}
@@ -64,13 +59,14 @@ export default function RunButton({
       {(isRunning || isPaused) && onStop && (
         <motion.button
           type="button"
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
+          whileHover={{ scale: 1.04 }}
+          whileTap={{ scale: 0.96 }}
           onClick={onStop}
-          className="btn px-4 py-3 rounded-xl bg-red-500 border border-red-600 hover:bg-red-600 text-white flex items-center justify-center"
+          className="btn btn--lg btn--danger px-4"
           title={t('stop')}
+          aria-label={t('stop')}
         >
-          <Square size={16} fill="white" />
+          <Square size={16} fill="currentColor" />
         </motion.button>
       )}
     </div>

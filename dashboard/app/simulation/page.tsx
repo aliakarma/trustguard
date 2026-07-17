@@ -7,8 +7,9 @@ import ParamSlider from '@/components/interactive/ParamSlider';
 import RunButton from '@/components/interactive/RunButton';
 import SparkLine from '@/components/data-display/SparkLine';
 import GaugeChart from '@/components/data-display/GaugeChart';
-import { API_BASE, WS_BASE } from '@/lib/constants';
+import { API_BASE, WS_BASE, BACKEND_HINT } from '@/lib/constants';
 import { useTranslations } from 'next-intl';
+import { Play, SlidersHorizontal } from 'lucide-react';
 
 export default function SimulationPlayground() {
   const { setActivePage, wsConnected, setWsConnected } = useGlobalStore();
@@ -161,11 +162,13 @@ export default function SimulationPlayground() {
       ws.onerror = (err) => {
         console.error('WS Error:', err);
         setSimStatus('idle');
+        setLogs((prev) => [...prev, `[Error] ${BACKEND_HINT}`]);
       };
 
     } catch (err) {
       console.error('Failed to start simulation:', err);
       setSimStatus('idle');
+      setLogs((prev) => [...prev, `[Error] ${BACKEND_HINT}`]);
     }
   };
 
@@ -189,42 +192,44 @@ export default function SimulationPlayground() {
   return (
     <div className="grid grid-cols-1 xl:grid-cols-4 gap-6 animate-fade-in-up">
       {/* ── 1. Configuration Panel (Left Sidebar, xl:col-span-1) ──────── */}
-      <div className="xl:col-span-1 flex flex-col gap-4 bg-panel p-5 rounded-xl border border-subtle">
-        <h3 className="stat-label mb-2">{t('config')}</h3>
+      <GlassPanel className="xl:col-span-1 flex flex-col gap-4 p-5 h-fit xl:sticky xl:top-20">
+        <h3 className="stat-label flex items-center gap-2">
+          <SlidersHorizontal size={14} className="text-monitor" /> {t('config')}
+        </h3>
 
         <div className="flex flex-col gap-3">
-          <span className="text-[10px] text-tertiary uppercase font-bold tracking-wider">{t('env_settings')}</span>
+          <span className="eyebrow">{t('env_settings')}</span>
           <ParamSlider label={t('benign_apps')} min={10} max={200} step={10} value={numBenign} onChange={setNumBenign} decimals={0} />
           <ParamSlider label={t('malicious_apps')} min={1} max={50} step={1} value={numMalicious} onChange={setNumMalicious} decimals={0} />
           <ParamSlider label={t('max_steps')} min={50} max={1000} step={50} value={maxSteps} onChange={setMaxSteps} decimals={0} />
         </div>
 
         <div className="flex flex-col gap-3 mt-2">
-          <span className="text-[10px] text-tertiary uppercase font-bold tracking-wider">{t('reward_weights')}</span>
+          <span className="eyebrow">{t('reward_weights')}</span>
           <ParamSlider label="λ₁ (False Revocation Penalty)" min={1.0} max={20.0} step={1.0} value={lambda1} onChange={setLambda1} />
           <ParamSlider label="λ₂ (Enforcement Cost)" min={0.01} max={0.5} step={0.01} value={lambda2} onChange={setLambda2} />
           <ParamSlider label="λ₃ (Risk Reduction Weight)" min={0.5} max={2.0} step={0.1} value={lambda3} onChange={setLambda3} />
         </div>
 
         <div className="flex flex-col gap-3 mt-2">
-          <span className="text-[10px] text-tertiary uppercase font-bold tracking-wider">{t('safety_constraint')}</span>
+          <span className="eyebrow">{t('safety_constraint')}</span>
           <ParamSlider label="ε_safe (FRR budget)" min={0.01} max={0.05} step={0.005} value={epsSafe} onChange={setEpsSafe} />
         </div>
 
         <div className="flex flex-col gap-3 mt-2">
-          <span className="text-[10px] text-tertiary uppercase font-bold tracking-wider">{t('risk_settings')}</span>
+          <span className="eyebrow">{t('risk_settings')}</span>
           <ParamSlider label="EMA α" min={0.1} max={0.7} step={0.1} value={emaAlpha} onChange={setEmaAlpha} />
           <ParamSlider label="Risk Threshold (τ)" min={0.3} max={0.7} step={0.05} value={riskThreshold} onChange={setRiskThreshold} />
         </div>
 
-        <div className="mt-4">
+        <div className="mt-2">
           <RunButton
             status={simStatus}
             onClick={simStatus === 'running' ? handlePause : handleStartResume}
             onStop={handleStop}
           />
         </div>
-      </div>
+      </GlassPanel>
 
       {/* ── 2. Live Grid & Timelines (Center, xl:col-span-2) ──────────── */}
       <div className="xl:col-span-2 flex flex-col gap-6">
@@ -238,7 +243,7 @@ export default function SimulationPlayground() {
           </div>
 
           {activeAppsRisk.length > 0 ? (
-            <div className="grid grid-cols-5 md:grid-cols-10 gap-2 overflow-y-auto max-h-[280px] p-2 bg-secondary/30 rounded-xl border border-subtle">
+            <div className="grid grid-cols-5 md:grid-cols-10 gap-2 overflow-y-auto max-h-[280px] p-2 bg-surface/30 rounded-xl border border-subtle">
               {activeAppsRisk.map((val, idx) => (
                 <div
                   key={idx}
@@ -255,9 +260,14 @@ export default function SimulationPlayground() {
               ))}
             </div>
           ) : (
-            <div className="flex-1 flex flex-col items-center justify-center text-tertiary text-xs text-center">
-              <span>▶</span>
-              <span className="mt-2">Simulation idle. Click Run to begin tracking steps.</span>
+            <div className="flex-1 flex items-center justify-center">
+              <div className="empty-state">
+                <span className="empty-state__icon"><Play size={22} className="text-tertiary" /></span>
+                <span className="text-sm font-semibold text-primary">Simulation idle</span>
+                <span className="text-xs text-tertiary max-w-xs">
+                  Configure the environment and reward weights, then run to stream the live app-risk landscape.
+                </span>
+              </div>
             </div>
           )}
         </GlassPanel>
@@ -270,7 +280,7 @@ export default function SimulationPlayground() {
             {/* Lane 1: Monitor */}
             <div className="flex flex-col gap-1.5">
               <span className="font-bold text-secondary">k=1 (Monitor Sampling)</span>
-              <div className="flex gap-0.5 overflow-x-auto min-h-6 bg-secondary/30 p-1 rounded border border-subtle">
+              <div className="flex gap-0.5 overflow-x-auto min-h-6 bg-surface/30 p-1 rounded border border-subtle">
                 {monitorActions.map((act, i) => (
                   <div
                     key={i}
@@ -286,7 +296,7 @@ export default function SimulationPlayground() {
             {/* Lane 2: Risk */}
             <div className="flex flex-col gap-1.5">
               <span className="font-bold text-secondary">k=2 (Risk Analysis)</span>
-              <div className="flex gap-0.5 overflow-x-auto min-h-6 bg-secondary/30 p-1 rounded border border-subtle">
+              <div className="flex gap-0.5 overflow-x-auto min-h-6 bg-surface/30 p-1 rounded border border-subtle">
                 {riskActions.map((act, i) => (
                   <div
                     key={i}
@@ -302,7 +312,7 @@ export default function SimulationPlayground() {
             {/* Lane 3: Enforce */}
             <div className="flex flex-col gap-1.5">
               <span className="font-bold text-secondary">k=3 (Enforcement Decisions)</span>
-              <div className="flex gap-0.5 overflow-x-auto min-h-6 bg-secondary/30 p-1 rounded border border-subtle">
+              <div className="flex gap-0.5 overflow-x-auto min-h-6 bg-surface/30 p-1 rounded border border-subtle">
                 {enforceActions.map((act, i) => {
                   const colorClass =
                     act === 3
@@ -332,7 +342,7 @@ export default function SimulationPlayground() {
         <div className="grid grid-cols-2 gap-4">
           <GlassPanel className="p-4 flex flex-col justify-between" style={{ minHeight: '80px' }}>
             <span className="stat-label">FRR (Ratio)</span>
-            <span className={`text-xl font-mono font-bold mt-2 ${currentFrr > epsSafe ? 'text-red-400' : 'text-emerald-400'}`}>
+            <span className={`text-xl font-mono font-bold mt-2 ${currentFrr > epsSafe ? 'text-danger' : 'text-safe'}`}>
               {(currentFrr * 100).toFixed(2)}%
             </span>
           </GlassPanel>
@@ -364,7 +374,7 @@ export default function SimulationPlayground() {
         {/* Event Logs */}
         <GlassPanel accentTop constraint className="p-5 flex-1 flex flex-col justify-between max-h-[350px]">
           <h3 className="stat-label mb-3">Live Simulation Event Log</h3>
-          <div className="flex-1 overflow-y-auto font-mono text-[10px] text-secondary flex flex-col gap-1.5 p-2 bg-secondary/30 rounded-lg border border-subtle h-48">
+          <div className="flex-1 overflow-y-auto font-mono text-[10px] text-secondary flex flex-col gap-1.5 p-2 bg-surface/30 rounded-lg border border-subtle h-48">
             {logs.map((log, i) => (
               <div key={i} className="leading-relaxed border-b border-subtle/5 pb-1">
                 {log}

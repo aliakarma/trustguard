@@ -3,8 +3,9 @@
 import React, { useEffect, useState } from 'react';
 import { useGlobalStore } from '@/stores/globalStore';
 import GlassPanel from '@/components/common/GlassPanel';
-import { API_BASE } from '@/lib/constants';
+import { API_BASE, BACKEND_HINT } from '@/lib/constants';
 import { useTranslations } from 'next-intl';
+import { Loader2, Zap, Bot, ServerCrash } from 'lucide-react';
 
 type AgentKey = 'monitoring' | 'risk' | 'enforce';
 
@@ -16,6 +17,7 @@ export default function AgentInspector() {
   const [obsInput, setObsInput] = useState<string>('0.1, 0.2, 0.0, 1.0, 0.3');
   const [isComputing, setIsComputing] = useState(false);
   const [actionResult, setActionResult] = useState<any>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     setActivePage('agent_inspector');
@@ -23,23 +25,26 @@ export default function AgentInspector() {
 
   const handleCompute = async () => {
     setIsComputing(true);
+    setError(null);
     try {
       // Parse CSV inputs
       const observation = obsInput.split(',').map((val) => parseFloat(val.trim())).filter((v) => !isNaN(v));
-      
+
       const res = await fetch(`${API_BASE}/api/agent_forward`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          agent: selectedAgent === 'enforce' ? 'enforce' : selectedAgent === 'risk' ? 'risk' : 'monitoring',
+          agent: selectedAgent === 'enforce' ? 'enforcement' : selectedAgent === 'risk' ? 'risk' : 'monitoring',
           observation,
           deterministic: false,
         }),
       });
+      if (!res.ok) throw new Error(`Backend returned ${res.status}`);
       const data = await res.json();
       setActionResult(data);
     } catch (err) {
       console.error('Inference failed:', err);
+      setError(BACKEND_HINT);
     } finally {
       setIsComputing(false);
     }
@@ -121,19 +126,15 @@ export default function AgentInspector() {
         <div className="flex flex-col lg:flex-row gap-6">
           {/* Controls */}
           <div className="flex-1 flex flex-col gap-4">
-            <div className="flex gap-2">
+            <div className="seg w-full">
               {(['monitoring', 'risk', 'enforce'] as AgentKey[]).map((agent) => (
                 <button
                   key={agent}
                   type="button"
                   onClick={() => handleAgentSelect(agent)}
-                  className={`btn text-xs font-semibold px-4 py-2 rounded-lg transition-all ${
-                    selectedAgent === agent
-                      ? 'bg-monitor text-white font-bold'
-                      : 'bg-secondary text-secondary hover:bg-slate-700'
-                  }`}
+                  className={`seg-item flex-1 ${selectedAgent === agent ? 'seg-item--active' : ''}`}
                 >
-                  {agent === 'monitoring' ? 'k=1 (Monitor)' : agent === 'risk' ? 'k=2 (Risk)' : 'k=3 (Enforce)'}
+                  {agent === 'monitoring' ? 'k=1 · Monitor' : agent === 'risk' ? 'k=2 · Risk' : 'k=3 · Enforce'}
                 </button>
               ))}
             </div>
@@ -146,7 +147,7 @@ export default function AgentInspector() {
                 type="text"
                 value={obsInput}
                 onChange={(e) => setObsInput(e.target.value)}
-                className="bg-secondary/40 border border-subtle rounded-lg p-2.5 text-xs font-mono focus:outline-none focus:border-monitor text-primary"
+                className="field text-xs font-mono text-primary"
               />
               <span className="text-[10px] text-tertiary">
                 {selectedAgent === 'monitoring'
@@ -161,26 +162,29 @@ export default function AgentInspector() {
               type="button"
               onClick={handleCompute}
               disabled={isComputing}
-              className="btn btn--primary py-3 text-xs font-bold rounded-xl mt-2 flex items-center justify-center gap-2"
+              className="btn btn--primary btn--lg w-full mt-1"
             >
               {isComputing ? (
                 <>
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  <span>Computing Forward Pass...</span>
+                  <Loader2 size={16} className="animate-spin" />
+                  <span>Computing forward pass…</span>
                 </>
               ) : (
-                <span>COMPUTE ACTION</span>
+                <>
+                  <Zap size={16} />
+                  <span>Compute action</span>
+                </>
               )}
             </button>
           </div>
 
           {/* Inference Results */}
-          <div className="flex-1 bg-secondary/40 border border-subtle p-5 rounded-xl flex flex-col justify-center min-h-[200px]">
+          <div className="flex-1 bg-surface/40 border border-subtle p-5 rounded-xl flex flex-col justify-center min-h-[200px]">
             {actionResult ? (
               <div className="flex flex-col gap-4">
                 <div className="flex justify-between items-baseline border-b border-subtle pb-3">
                   <span className="text-xs text-secondary font-bold">Selected Action</span>
-                  <span className="font-mono text-lg font-bold text-emerald-400">
+                  <span className="font-mono text-lg font-bold text-safe">
                     {actionResult.action_name}
                   </span>
                 </div>
@@ -208,7 +212,7 @@ export default function AgentInspector() {
                           <span>{actionName}</span>
                           <span className="font-mono text-primary font-semibold">{(prob * 100).toFixed(1)}%</span>
                         </div>
-                        <div className="h-2 bg-secondary rounded overflow-hidden">
+                        <div className="h-2 bg-surface rounded overflow-hidden">
                           <div
                             className="h-full rounded bg-monitor"
                             style={{ width: `${prob * 100}%` }}
@@ -219,10 +223,19 @@ export default function AgentInspector() {
                   })}
                 </div>
               </div>
+            ) : error ? (
+              <div className="empty-state">
+                <span className="empty-state__icon"><ServerCrash size={22} className="text-danger" /></span>
+                <span className="text-sm font-semibold text-danger">Backend unavailable</span>
+                <span className="text-xs text-secondary max-w-[18rem] text-mono">{error}</span>
+              </div>
             ) : (
-              <div className="text-center text-xs text-tertiary flex flex-col items-center gap-2">
-                <span>🤖</span>
-                <span>Ready to execute policy inference.</span>
+              <div className="empty-state">
+                <span className="empty-state__icon"><Bot size={22} className="text-tertiary" /></span>
+                <span className="text-sm font-semibold text-primary">Ready for inference</span>
+                <span className="text-xs text-tertiary max-w-[16rem]">
+                  Pick an agent, enter an observation vector, and compute the policy&apos;s action distribution.
+                </span>
               </div>
             )}
           </div>

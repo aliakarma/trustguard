@@ -114,3 +114,7 @@ export const APP_CATEGORIES = [
 /* ── API Base URL ─────────────────────────────────────────────────────────── */
 export const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:8001';
 export const WS_BASE = process.env.NEXT_PUBLIC_WS_BASE || 'ws://localhost:8001';
+
+/* Shown when the Python inference backend is unreachable. */
+export const BACKEND_HINT =
+  'Cannot reach the TrustGuard backend on localhost:8001. Start it with:  python backend/main.py';

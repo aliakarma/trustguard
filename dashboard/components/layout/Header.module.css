@@ -1,88 +1,95 @@
 .header {
   position: sticky;
   inset-block-start: 0;
-  block-size: var(--header-height);
+  min-block-size: var(--header-height);
   background: var(--surface-glass);
-  backdrop-filter: blur(16px) saturate(180%);
-  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  backdrop-filter: blur(18px) saturate(180%);
+  -webkit-backdrop-filter: blur(18px) saturate(180%);
   border-block-end: 1px solid var(--border-subtle);
   z-index: var(--z-header);
   display: flex;
   align-items: center;
-  padding-inline: 1.5rem;
+  padding-inline: 1.75rem;
+  padding-block: 0.7rem;
   gap: 1rem;
 }
 
-.titleArea {
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-}
+.titleArea { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 
-.breadcrumb {
+.eyebrow {
   display: flex;
   align-items: center;
-  gap: 0.25rem;
-  font-size: 0.6875rem;
+  gap: 0.35rem;
+  font-size: 0.62rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
   color: var(--text-tertiary);
 }
-
-.breadcrumbHome {
-  cursor: pointer;
-}
-
-.breadcrumbHome:hover {
-  color: var(--text-secondary);
-}
-
-.breadcrumbSep {
-  margin-inline: 0.25rem;
-  color: var(--text-tertiary);
-}
-
-.breadcrumbItem {
-  color: var(--text-secondary);
+.eyebrowDot {
+  inline-size: 5px;
+  block-size: 5px;
+  border-radius: 50%;
+  background: var(--accent-monitor);
 }
 
 .pageTitle {
-  font-size: 1.125rem;
-  font-weight: 600;
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
   color: var(--text-primary);
-  line-height: 1.2;
+  line-height: 1.15;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.spacer {
-  flex: 1;
+.subtitle {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.spacer { flex: 1; }
+
+.right { display: flex; align-items: center; gap: 0.6rem; }
+
+.envBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.7rem;
+  border-radius: 9999px;
+  background: var(--accent-constraint-dim);
+  color: var(--accent-constraint);
+  border: 1px solid color-mix(in srgb, var(--accent-constraint) 22%, transparent);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
 }
 
 .connectionStatus {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.375rem 0.75rem;
+  gap: 0.45rem;
+  padding: 0.34rem 0.75rem;
   border-radius: 9999px;
-  background: var(--surface-glass);
+  background: var(--bg-secondary);
   border: 1px solid var(--border-subtle);
-  font-size: 0.75rem;
+  font-size: 0.72rem;
 }
 
-.statusDot {
-  inline-size: 8px;
-  block-size: 8px;
-  border-radius: 50%;
-}
+.statusDot { inline-size: 8px; block-size: 8px; border-radius: 50%; flex-shrink: 0; }
+.dotConnected { background: var(--accent-safe); box-shadow: 0 0 8px var(--accent-safe); animation: dot-pulse 2s ease-in-out infinite; }
+.dotDisconnected { background: var(--text-tertiary); }
 
-.dotConnected {
-  background: var(--accent-safe);
-  box-shadow: 0 0 6px var(--accent-safe);
-  animation: dot-pulse 2s ease-in-out infinite;
-}
+.statusText { color: var(--text-secondary); font-weight: 600; }
 
-.dotDisconnected {
-  background: var(--text-tertiary);
-}
-
-.statusText {
-  color: var(--text-secondary);
-  font-weight: 500;
+@media (max-width: 680px) {
+  .header { padding-inline: 1.1rem; }
+  .subtitle { display: none; }
+  .envBadge { display: none; }
+  .statusText { display: none; }
 }

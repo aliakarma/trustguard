@@ -43,6 +43,9 @@ export const useGlobalStore = create<GlobalState>()(
     }),
     {
       name: 'trustguard-global-state',
+      // Defer reading localStorage until after mount so the first client render
+      // matches the server-rendered defaults (no hydration mismatch).
+      skipHydration: true,
       partialize: (state) => ({
         sidebarCollapsed: state.sidebarCollapsed,
         locale: state.locale,

@@ -2,97 +2,95 @@
 
 import React, { useState } from 'react';
 import { PERMISSION_GROUPS } from '@/lib/constants';
+import { ChevronDown, ChevronRight } from 'lucide-react';
 
 interface PermissionSelectorProps {
   selected: string[];
   onChange: (selected: string[]) => void;
 }
 
-export default function PermissionSelector({
-  selected,
-  onChange,
-}: PermissionSelectorProps) {
+export default function PermissionSelector({ selected, onChange }: PermissionSelectorProps) {
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({
     Location: true,
     Camera: true,
     Microphone: true,
   });
 
-  const toggleGroup = (group: string) => {
+  const toggleGroup = (group: string) =>
     setExpandedGroups((prev) => ({ ...prev, [group]: !prev[group] }));
-  };
 
   const handlePermissionToggle = (perm: string) => {
-    const isSelected = selected.includes(perm);
-    if (isSelected) {
-      onChange(selected.filter((p) => p !== perm));
-    } else {
-      onChange([...selected, perm]);
-    }
+    onChange(selected.includes(perm) ? selected.filter((p) => p !== perm) : [...selected, perm]);
   };
 
   const selectAllInGroup = (group: string, select: boolean) => {
     const permsInGroup = PERMISSION_GROUPS[group];
     if (select) {
-      // Add all perms from group that are not already selected
-      const newSelection = [...selected];
-      permsInGroup.forEach((p) => {
-        if (!newSelection.includes(p)) newSelection.push(p);
-      });
-      onChange(newSelection);
+      const next = [...selected];
+      permsInGroup.forEach((p) => { if (!next.includes(p)) next.push(p); });
+      onChange(next);
     } else {
-      // Remove all perms from group
       onChange(selected.filter((p) => !permsInGroup.includes(p)));
     }
   };
 
   return (
-    <div className="flex flex-col gap-3 p-4 glass-panel border border-subtle max-h-[400px] overflow-y-auto">
-      <h3 className="stat-label mb-2">Declared Permissions</h3>
+    <div className="glass-panel p-5 flex flex-col gap-2 max-h-[420px] overflow-y-auto">
+      <div className="flex items-center justify-between mb-1">
+        <h3 className="stat-label">Declared Permissions</h3>
+        <span className="chip">{selected.length} selected</span>
+      </div>
+
       {Object.entries(PERMISSION_GROUPS).map(([groupName, perms]) => {
         const isExpanded = !!expandedGroups[groupName];
         const groupSelectedCount = perms.filter((p) => selected.includes(p)).length;
         const allSelected = groupSelectedCount === perms.length;
 
         return (
-          <div key={groupName} className="flex flex-col border-b border-subtle pb-2 mb-2 last:border-0 last:pb-0 last:mb-0">
-            <div className="flex justify-between items-center py-1">
+          <div key={groupName} className="border-b border-subtle pb-2 last:border-0 last:pb-0">
+            <div className="flex justify-between items-center gap-2 py-1">
               <button
                 type="button"
                 onClick={() => toggleGroup(groupName)}
-                className="text-xs font-bold text-primary flex items-center gap-1 hover:text-secondary"
+                className="flex items-center gap-1.5 text-xs font-semibold text-primary hover:text-monitor transition-colors min-w-0"
               >
-                <span>{isExpanded ? '▼' : '▶'}</span>
-                <span>{groupName}</span>
-                <span className="text-[10px] text-tertiary">
-                  ({groupSelectedCount}/{perms.length})
+                {isExpanded ? <ChevronDown size={14} className="text-tertiary flex-shrink-0" /> : <ChevronRight size={14} className="text-tertiary flex-shrink-0" />}
+                <span className="truncate">{groupName}</span>
+                <span
+                  className={`text-[10px] text-mono px-1.5 py-0.5 rounded-full flex-shrink-0 ${
+                    groupSelectedCount > 0 ? 'bg-monitor/15 text-monitor' : 'bg-surface text-tertiary'
+                  }`}
+                >
+                  {groupSelectedCount}/{perms.length}
                 </span>
               </button>
               <button
                 type="button"
                 onClick={() => selectAllInGroup(groupName, !allSelected)}
-                className="text-[10px] text-monitor hover:underline"
+                className="text-[10px] font-semibold text-tertiary hover:text-monitor transition-colors flex-shrink-0"
               >
-                {allSelected ? 'Clear Group' : 'Select Group'}
+                {allSelected ? 'Clear' : 'All'}
               </button>
             </div>
 
             {isExpanded && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-2 pl-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-1.5 mt-1.5 ps-5">
                 {perms.map((perm) => {
                   const isChecked = selected.includes(perm);
                   return (
                     <label
                       key={perm}
-                      className="flex items-center gap-2 text-xs text-secondary cursor-pointer hover:text-primary"
+                      className={`flex items-center gap-2 text-[11px] text-mono cursor-pointer rounded-md px-1.5 py-1 transition-colors ${
+                        isChecked ? 'text-primary bg-monitor/10' : 'text-secondary hover:bg-surface'
+                      }`}
                     >
                       <input
                         type="checkbox"
                         checked={isChecked}
                         onChange={() => handlePermissionToggle(perm)}
-                        className="rounded border-subtle text-monitor focus:ring-monitor h-3 w-3"
+                        className="h-3.5 w-3.5 rounded flex-shrink-0"
                       />
-                      <span>{perm}</span>
+                      <span className="truncate">{perm}</span>
                     </label>
                   );
                 })}

@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { Info } from 'lucide-react';
 
 interface ParamSliderProps {
   label: string;
@@ -25,18 +26,20 @@ export default function ParamSlider({
   decimals = 2,
   suffix = '',
 }: ParamSliderProps) {
+  const filled = ((value - min) / (max - min)) * 100;
+
   return (
-    <div className="flex flex-col gap-2 p-3 glass-panel border border-subtle">
-      <div className="flex justify-between items-center">
-        <span className="text-xs font-semibold text-secondary flex items-center gap-1">
-          {label}
+    <div className="flex flex-col gap-2.5">
+      <div className="flex justify-between items-center gap-2">
+        <span className="text-xs font-medium text-secondary flex items-center gap-1.5 min-w-0">
+          <span className="truncate">{label}</span>
           {tooltip && (
-            <span className="text-tertiary cursor-help" title={tooltip}>
-              ⓘ
+            <span className="text-tertiary cursor-help flex-shrink-0" title={tooltip} aria-label={tooltip}>
+              <Info size={12} />
             </span>
           )}
         </span>
-        <span className="text-sm font-mono font-bold text-primary">
+        <span className="text-xs text-mono font-semibold text-primary bg-surface border border-subtle rounded-md px-2 py-0.5 flex-shrink-0">
           {value.toFixed(decimals)}
           {suffix}
         </span>
@@ -48,9 +51,9 @@ export default function ParamSlider({
         step={step}
         value={value}
         onChange={(e) => onChange(parseFloat(e.target.value))}
-        className="w-full h-1 bg-border-subtle rounded-lg appearance-none cursor-pointer accent-monitor"
+        aria-label={label}
         style={{
-          background: `linear-gradient(to right, var(--accent-monitor) 0%, var(--accent-monitor) ${((value - min) / (max - min)) * 100}%, var(--border-subtle) ${((value - min) / (max - min)) * 100}%, var(--border-subtle) 100%)`,
+          background: `linear-gradient(to right, var(--accent-monitor) 0%, var(--accent-monitor) ${filled}%, var(--border-subtle) ${filled}%, var(--border-subtle) 100%)`,
         }}
       />
     </div>

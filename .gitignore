@@ -54,3 +54,4 @@ htmlcov/
 *.apk
 apks/
 /Paper
+.gstack/

@@ -24,8 +24,21 @@ Usage
         --n-malicious   14512 \
         --n-workers     8
 
-    # Quick sanity-check mode (no API key, 100 synthetic records):
+    # Synthetic mode (no API key). Small smoke-test set:
     python scripts/build_dataset.py --synthetic --output-dir data/permissionbench
+
+    # Synthetic mode at full paper scale (76,352 records, ~7 s, ~28 MB):
+    python scripts/build_dataset.py --synthetic \
+        --n-benign 61840 --n-malicious 14512 \
+        --output-dir data/permissionbench
+
+WARNING: the synthetic set is procedurally generated and is NOT the real
+PermissionBench. Its class separability is an artifact of the generator, so
+it will NOT reproduce the paper's metrics. Use it only to exercise the
+pipeline end-to-end at realistic scale (dataloaders, splits, training loop).
+Reproducing paper results requires the real APK-derived corpus (Option B with
+an AndroZoo key) or the released build. A DATASET_TYPE.txt marker is written
+alongside the splits to record which kind of data a directory holds.
 """
 
 from __future__ import annotations
@@ -34,10 +47,13 @@ import argparse
 import json
 import logging
 import random
+import sys
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))  # repo root on path
 
 from trustguard.dataset.preprocessing import (
     normalise_description,
@@ -139,6 +155,22 @@ def build_synthetic(
 
     # Also save full dataset
     df.to_parquet(output_dir / "permissionbench_synthetic.parquet", index=False)
+
+    # Write a marker so this directory is never mistaken for the real benchmark
+    marker = (
+        "DATASET_TYPE: SYNTHETIC\n"
+        "This directory contains a procedurally generated synthetic dataset, "
+        "NOT the real PermissionBench.\n"
+        "Class separability is an artifact of the generator; it does NOT "
+        "reproduce the paper's metrics.\n"
+        "Use only to exercise the pipeline end-to-end. Reproducing paper "
+        "results requires the real APK-derived corpus\n"
+        "(scripts/build_dataset.py with --androzoo-key) or the released build "
+        "(scripts/download_permissionbench.sh).\n"
+        f"records={len(df)} benign={(df['risk_label'] == 0).sum()} "
+        f"malicious={(df['risk_label'] == 1).sum()} seed={seed}\n"
+    )
+    (output_dir / "DATASET_TYPE.txt").write_text(marker, encoding="utf-8")
     logger.info("Synthetic dataset saved to %s", output_dir)
 
     # Print summary
@@ -197,8 +229,8 @@ def main() -> None:
     if args.synthetic:
         build_synthetic(
             output_dir=output_dir,
-            n_benign=min(args.n_benign, 500),
-            n_malicious=min(args.n_malicious, 125),
+            n_benign=args.n_benign,
+            n_malicious=args.n_malicious,
             seed=args.seed,
         )
     elif args.androzoo_key:

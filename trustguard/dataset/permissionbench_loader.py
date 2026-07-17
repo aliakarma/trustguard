@@ -76,6 +76,60 @@ def parse_permission_vector(perm_list: Union[str, list]) -> np.ndarray:
 
 
 # ─────────────────────────────────────────────────────────────────────────────
+def to_float_vector(x) -> np.ndarray:
+    """
+    Decode a per-permission float vector (perm_labels or runtime_trace) that
+    may be stored in any of the encodings the build pipeline produces:
+
+      - raw bytes buffer (``np.frombuffer``)
+      - a numpy array / list of numbers (Parquet list column)
+      - a JSON-encoded list of numbers (e.g. ``"[0.0, 0.5, ...]"``)
+      - a JSON/CSV list of permission-name strings (falls back to the
+        multi-hot indicator via :func:`parse_permission_vector`)
+
+    Always returns a ``float32`` array of length ``NUM_PERMISSIONS`` (empty or
+    malformed values become an all-zero vector).
+    """
+    if x is None:
+        return np.zeros(NUM_PERMISSIONS, dtype=np.float32)
+
+    if isinstance(x, (bytes, bytearray)):
+        return np.frombuffer(x, dtype=np.float32).copy()
+
+    if isinstance(x, np.ndarray):
+        if x.dtype.kind in "fiu":
+            return _fit_length(x.astype(np.float32))
+        x = x.tolist()  # object/str array → list, handled below
+
+    if isinstance(x, (list, tuple)):
+        if len(x) == 0:
+            return np.zeros(NUM_PERMISSIONS, dtype=np.float32)
+        if all(isinstance(v, (int, float, np.integer, np.floating)) for v in x):
+            return _fit_length(np.asarray(x, dtype=np.float32))
+        return parse_permission_vector(list(x))  # list of permission names
+
+    if isinstance(x, str):
+        import json
+        try:
+            parsed = json.loads(x)
+        except json.JSONDecodeError:
+            return parse_permission_vector(x)
+        return to_float_vector(parsed)
+
+    return np.zeros(NUM_PERMISSIONS, dtype=np.float32)
+
+
+def _fit_length(vec: np.ndarray) -> np.ndarray:
+    """Pad/truncate a 1-D vector to exactly NUM_PERMISSIONS entries."""
+    if vec.shape[0] == NUM_PERMISSIONS:
+        return vec
+    out = np.zeros(NUM_PERMISSIONS, dtype=np.float32)
+    n = min(vec.shape[0], NUM_PERMISSIONS)
+    out[:n] = vec[:n]
+    return out
+
+
+# ─────────────────────────────────────────────────────────────────────────────
 class PermissionBenchDataset(Dataset):
     """
     PyTorch Dataset for PermissionBench.
@@ -113,14 +167,12 @@ class PermissionBenchDataset(Dataset):
             self.df["permissions"].apply(parse_permission_vector).values
         )  # (N, NUM_PERMISSIONS)
 
-        # Per-permission labels (may be absent — fall back to risk_label broadcast)
+        # Per-permission labels (may be absent — fall back to risk_label broadcast).
+        # Handles bytes buffers, float arrays, JSON strings, or permission-name
+        # lists (see to_float_vector).
         if "perm_labels" in self.df.columns:
             self._perm_labels = np.stack(
-                self.df["perm_labels"].apply(
-                    lambda x: np.frombuffer(x, dtype=np.float32)
-                    if isinstance(x, bytes)
-                    else parse_permission_vector(x)
-                ).values
+                self.df["perm_labels"].apply(to_float_vector).values
             )
         else:
             # Broadcast app-level risk label to all permissions
@@ -129,14 +181,10 @@ class PermissionBenchDataset(Dataset):
                 * self._perm_vectors
             ).astype(np.float32)
 
-        # Runtime traces (optional)
+        # Runtime traces (optional) — same multi-encoding handling.
         if "runtime_trace" in self.df.columns:
             self._runtime_traces = np.stack(
-                self.df["runtime_trace"].apply(
-                    lambda x: np.frombuffer(x, dtype=np.float32)
-                    if isinstance(x, bytes)
-                    else np.zeros(NUM_PERMISSIONS, dtype=np.float32)
-                ).values
+                self.df["runtime_trace"].apply(to_float_vector).values
             )
         else:
             self._runtime_traces = np.zeros(

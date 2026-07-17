@@ -1,0 +1,154 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   Sidebar Component Styles
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.sidebar {
+  position: fixed;
+  inset-block-start: 0;
+  inset-inline-start: 0;
+  inline-size: var(--sidebar-width);
+  block-size: 100vh;
+  background: var(--bg-panel);
+  border-inline-end: 1px solid var(--border-subtle);
+  z-index: var(--z-sidebar);
+  display: flex;
+  flex-direction: column;
+  transition: inline-size var(--transition-normal);
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.collapsed {
+  inline-size: var(--sidebar-collapsed);
+}
+
+/* ── Brand ────────────────────────────────────────────────────────────────── */
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1.25rem 1rem;
+  border-block-end: 1px solid var(--border-subtle);
+  min-block-size: 64px;
+}
+
+.logo {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 40px;
+  block-size: 40px;
+}
+
+.brandText {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.brandName {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+}
+
+.brandSub {
+  font-size: 0.6875rem;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+/* ── Navigation ───────────────────────────────────────────────────────────── */
+.nav {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 0.75rem 0.5rem;
+  overflow-y: auto;
+}
+
+.navItem {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.625rem 0.75rem;
+  border-radius: var(--border-radius-md);
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  font-weight: 450;
+  text-decoration: none;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.navItem:hover {
+  background: var(--surface-glass);
+  color: var(--text-primary);
+}
+
+.navItem.active {
+  background: var(--surface-glass-hover);
+  color: var(--text-primary);
+  font-weight: 550;
+}
+
+.navIcon {
+  flex-shrink: 0;
+  opacity: 0.7;
+}
+
+.navItem:hover .navIcon,
+.navItem.active .navIcon {
+  opacity: 1;
+}
+
+.navLabel {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.activeIndicator {
+  position: absolute;
+  inset-inline-start: 0;
+  inset-block-start: 50%;
+  transform: translateY(-50%);
+  inline-size: 3px;
+  block-size: 24px;
+  background: var(--accent-monitor);
+  border-radius: 0 4px 4px 0;
+}
+
+/* ── Bottom Controls ──────────────────────────────────────────────────────── */
+.bottomControls {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 0.75rem 0.5rem;
+  border-block-start: 1px solid var(--border-subtle);
+}
+
+.controlBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--border-radius-sm);
+  color: var(--text-tertiary);
+  font-size: 0.8125rem;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.controlBtn:hover {
+  background: var(--surface-glass);
+  color: var(--text-primary);
+}

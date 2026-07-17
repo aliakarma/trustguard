@@ -191,6 +191,22 @@ class PermissionPredictionModel(nn.Module):
 
         self.mlp = nn.Sequential(*layers)
 
+        # ── Permission-vector input adapter ───────────────────────────
+        # The model is designed to consume the semantic embedding
+        # φ(fᵢ) ∈ ℝ^embedding_dim. Supervised pre-training and the Task-1
+        # evaluation use a lightweight proxy: the declared-permission
+        # multi-hot vector (dim = num_permissions) instead of running the
+        # ~220M-param semantic encoder. This adapter projects that proxy
+        # into the embedding space so both input kinds share one MLP head.
+        # It is only applied when a permission-vector-sized input is passed;
+        # genuine embedding inputs (dim == embedding_dim) bypass it.
+        if num_permissions != embedding_dim:
+            self.perm_adapter: Optional[nn.Module] = nn.Linear(
+                num_permissions, embedding_dim
+            )
+        else:
+            self.perm_adapter = None
+
         # ── Loss function ─────────────────────────────────────────────
         self.loss_fn = LabelSmoothingBCE(smoothing=label_smoothing)
 
@@ -198,7 +214,10 @@ class PermissionPredictionModel(nn.Module):
 
     # ------------------------------------------------------------------
     def _init_weights(self) -> None:
-        for module in self.mlp.modules():
+        modules = list(self.mlp.modules())
+        if self.perm_adapter is not None:
+            modules.append(self.perm_adapter)
+        for module in modules:
             if isinstance(module, nn.Linear):
                 nn.init.xavier_uniform_(module.weight)
                 if module.bias is not None:
@@ -209,15 +228,27 @@ class PermissionPredictionModel(nn.Module):
         """
         Compute raw logits for all permissions.
 
+        Accepts either the semantic embedding φ(fᵢ) of shape
+        ``(B, embedding_dim)`` or, for the lightweight pre-training/eval
+        proxy path, the declared-permission multi-hot vector of shape
+        ``(B, num_permissions)``. Permission-vector inputs are projected into
+        the embedding space by ``perm_adapter`` before the shared MLP head.
+
         Parameters
         ----------
-        phi : Tensor  shape (B, embedding_dim)
+        phi : Tensor  shape (B, embedding_dim) or (B, num_permissions)
 
         Returns
         -------
         logits : Tensor  shape (B, num_permissions)
             Raw (pre-sigmoid) scores. Use ``predict_proba`` for probabilities.
         """
+        if (
+            self.perm_adapter is not None
+            and phi.shape[-1] == self.num_permissions
+            and phi.shape[-1] != self.embedding_dim
+        ):
+            phi = self.perm_adapter(phi)
         return self.mlp(phi)
 
     # ------------------------------------------------------------------

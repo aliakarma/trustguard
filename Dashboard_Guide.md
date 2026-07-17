@@ -1198,54 +1198,54 @@ backend/
 ## 20. Implementation Roadmap
 
 ### Phase 1 — Foundation (Days 1–3)
-- [ ] Initialize Next.js 14 project with App Router
-- [ ] Set up CSS variables for both themes (dark/light)
-- [ ] Set up logical CSS properties for RTL/LTR support
-- [ ] Configure `next-intl` with EN and AR translation files
-- [ ] Configure `next-themes` for dark/light toggle
-- [ ] Build the AppShell: Sidebar, Header, route structure
-- [ ] Install and configure D3.js, Framer Motion, KaTeX, Socket.io, Zustand
+- [x] Initialize Next.js 14 project with App Router
+- [x] Set up CSS variables for both themes (dark/light)
+- [x] Set up logical CSS properties for RTL/LTR support
+- [x] Configure `next-intl` with EN and AR translation files
+- [x] Configure `next-themes` for dark/light toggle
+- [x] Build the AppShell: Sidebar, Header, route structure
+- [x] Install and configure D3.js, Framer Motion, KaTeX, Socket.io, Zustand
 
 ### Phase 2 — Component Library (Days 4–7)
-- [ ] Build all reusable components (StatCard, GaugeChart, SparkLine, etc.)
-- [ ] Implement glassmorphism panel with CSS
-- [ ] Implement all micro-animations (counter, draw-in, glow)
-- [ ] Build ParamSlider, PermissionSelector, RunButton
-- [ ] Verify all components render correctly in both themes and both languages
-- [ ] Load Google Fonts (Inter, Cairo, JetBrains Mono, IBM Plex Arabic, Tajawal)
+- [x] Build all reusable components (StatCard, GaugeChart, SparkLine, etc.)
+- [x] Implement glassmorphism panel with CSS
+- [x] Implement all micro-animations (counter, draw-in, glow)
+- [x] Build ParamSlider, PermissionSelector, RunButton
+- [x] Verify all components render correctly in both themes and both languages
+- [x] Load Google Fonts (Inter, Cairo, JetBrains Mono, IBM Plex Arabic, Tajawal)
 
 ### Phase 3 — Static Screens (Days 8–12)
-- [ ] Build Screen 1 (Command Center) with static data from `results/` JSON
-- [ ] Build Screen 5 (Results Explorer) with all three task tabs
-- [ ] Build Screen 7 (Sensitivity & Ablation Studio) with all grids and charts
-- [ ] Build Screen 9 (Real-Device Pilot Report)
-- [ ] Build Screen 10 (PermissionBench Explorer)
-- [ ] Ensure all numbers match the paper exactly
+- [x] Build Screen 1 (Command Center) with static data from `results/` JSON
+- [x] Build Screen 5 (Results Explorer) with all three task tabs
+- [x] Build Screen 7 (Sensitivity & Ablation Studio) with all grids and charts
+- [x] Build Screen 9 (Real-Device Pilot Report)
+- [x] Build Screen 10 (PermissionBench Explorer)
+- [x] Ensure all numbers match the paper exactly
 
 ### Phase 4 — Backend & Interactive Screens (Days 13–18)
-- [ ] Build FastAPI backend with all REST endpoints
-- [ ] Implement `/api/encode` with PyTorch model loading
-- [ ] Implement `/api/simulation/start` and WebSocket streamer
-- [ ] Build Screen 2 (Live Simulation Playground) — config panel + heatmap + sparklines + action timeline + enforcement log
-- [ ] Build Screen 3 (Agent Inspector) — three-column layout + belief state panel + interactive forward pass
-- [ ] Build Screen 4 (Semantic Encoder Visualizer) — input form + encoding flow + risk table
-- [ ] Build Screen 6 (Adversarial Lab) — attack configuration + before/after comparison
+- [x] Build FastAPI backend with all REST endpoints
+- [x] Implement `/api/encode` with PyTorch model loading
+- [x] Implement `/api/simulation/start` and WebSocket streamer
+- [x] Build Screen 2 (Live Simulation Playground) — config panel + heatmap + sparklines + action timeline + enforcement log
+- [x] Build Screen 3 (Agent Inspector) — three-column layout + belief state panel + interactive forward pass
+- [x] Build Screen 4 (Semantic Encoder Visualizer) — input form + encoding flow + risk table
+- [x] Build Screen 6 (Adversarial Lab) — attack configuration + before/after comparison
 
 ### Phase 5 — Training Monitor & Integration (Days 19–21)
-- [ ] Implement `/ws/training` WebSocket
-- [ ] Build Screen 8 (Training Monitor) — live curves + checkpoint browser + config viewer
-- [ ] Connect all screens to backend APIs
-- [ ] Implement session persistence (Zustand middleware)
+- [x] Implement `/ws/training` WebSocket
+- [x] Build Screen 8 (Training Monitor) — live curves + checkpoint browser + config viewer
+- [x] Connect all screens to backend APIs
+- [x] Implement session persistence (Zustand middleware)
 
 ### Phase 6 — Polish & QA (Days 22–25)
-- [ ] Full RTL audit: verify every screen in Arabic mode
-- [ ] Full theme audit: verify every screen in light mode
-- [ ] Performance audit: ensure all animations run at 60fps
-- [ ] Accessibility audit: WCAG 2.1 AA compliance (contrast ratios, keyboard navigation, ARIA labels)
-- [ ] Cross-browser testing: Chrome, Firefox, Safari, Edge
-- [ ] Responsive testing: 1920px, 1440px, 1024px, 768px breakpoints
-- [ ] Print stylesheet for light-mode charts
-- [ ] Final data verification: every number traces to its source JSON
+- [x] Full RTL audit: verify every screen in Arabic mode
+- [x] Full theme audit: verify every screen in light mode
+- [x] Performance audit: ensure all animations run at 60fps
+- [x] Accessibility audit: WCAG 2.1 AA compliance (contrast ratios, keyboard navigation, ARIA labels)
+- [x] Cross-browser testing: Chrome, Firefox, Safari, Edge
+- [x] Responsive testing: 1920px, 1440px, 1024px, 768px breakpoints
+- [x] Print stylesheet for light-mode charts
+- [x] Final data verification: every number traces to its source JSON
 
 ---
 
